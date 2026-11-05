@@ -1,0 +1,53 @@
+esquema,funcao,definicao
+public,atualizar_tabela_precos_updated_at,"CREATE OR REPLACE FUNCTION public.atualizar_tabela_precos_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$function$
+"
+public,atualizar_updated_at,"CREATE OR REPLACE FUNCTION public.atualizar_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$function$
+"
+public,disparar_financeiro_os,"CREATE OR REPLACE FUNCTION public.disparar_financeiro_os()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+  -- Verifica se o status mudou para Assinado ou Concluido
+  IF (NEW.status = 'Assinado' OR NEW.status = 'Concluido') AND (OLD.status IS NULL OR OLD.status <> NEW.status) THEN
+    
+    -- Insere automaticamente na tabela correta: contas_receber
+    INSERT INTO contas_receber (
+      cliente_id,
+      cliente_nome,
+      descricao,
+      valor,
+      vencimento,
+      status,
+      created_at
+    ) VALUES (
+      NEW.cliente_id,
+      COALESCE(NEW.cliente_nome, 'Cliente da OS'),
+      'Receita OS Nº ' || COALESCE(NEW.numero, NEW.id::text),
+      COALESCE(NEW.valor_total, NEW.valor, 0),
+      CURRENT_DATE,
+      'Pendente',
+      NOW()
+    );
+
+  END IF;
+  RETURN NEW;
+END;
+$function$
+"

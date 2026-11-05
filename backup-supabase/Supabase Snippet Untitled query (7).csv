@@ -1,0 +1,75 @@
+schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+public,agenda,agenda_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,agenda,agenda_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,agenda,agenda_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,agenda,agenda_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,ajudantes,Permitir acesso total para ajudantes,PERMISSIVE,{public},ALL,true,true
+public,caixa_movimentacoes,authenticated can manage caixa movimentacoes,PERMISSIVE,{authenticated},ALL,true,true
+public,clientes,clientes_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,clientes,clientes_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,clientes,clientes_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,clientes,clientes_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,configuracoes_empresa,configuracoes_empresa_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,configuracoes_empresa,configuracoes_empresa_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,configuracoes_empresa,configuracoes_empresa_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,configuracoes_empresa,configuracoes_empresa_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,contas_financeiras,authenticated can manage contas financeiras,PERMISSIVE,{authenticated},ALL,true,true
+public,contas_pagar,authenticated can manage contas pagar,PERMISSIVE,{authenticated},ALL,true,true
+public,contas_receber,authenticated can manage contas receber,PERMISSIVE,{authenticated},ALL,true,true
+public,contratos,contratos_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,contratos,contratos_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,contratos,contratos_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,contratos,contratos_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,contratos_planos_mensais,authenticated_manage_contratos_planos,PERMISSIVE,{authenticated},ALL,true,true
+public,equipamentos,equipamentos_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,equipamentos,equipamentos_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,equipamentos,equipamentos_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,equipamentos,equipamentos_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,estoque_produtos,estoque_produtos_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,estoque_produtos,estoque_produtos_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,estoque_produtos,estoque_produtos_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,estoque_produtos,estoque_produtos_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,funcionarios,authenticated can manage funcionarios,PERMISSIVE,{authenticated},ALL,true,true
+public,funcionarios,funcionario pode ver seu proprio cadastro,PERMISSIVE,{authenticated},SELECT,(id = auth.uid()),null
+public,historico_manutencao,historico_manutencao_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,historico_manutencao,historico_manutencao_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,historico_manutencao,historico_manutencao_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,historico_manutencao,historico_manutencao_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,lancamentos_financeiros,financeiro_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,lancamentos_financeiros,financeiro_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,lancamentos_financeiros,financeiro_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,lancamentos_financeiros,financeiro_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,manutencoes_equipamentos,manutencoes_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,manutencoes_equipamentos,manutencoes_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,manutencoes_equipamentos,manutencoes_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,manutencoes_equipamentos,manutencoes_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,movimentacoes_caixa,authenticated can manage movimentacoes caixa,PERMISSIVE,{authenticated},ALL,true,true
+public,movimentacoes_estoque,movimentacoes_estoque_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,movimentacoes_estoque,movimentacoes_estoque_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,movimentacoes_estoque,movimentacoes_estoque_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,movimentacoes_estoque,movimentacoes_estoque_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,orcamentos,orcamentos_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,orcamentos,orcamentos_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,orcamentos,orcamentos_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,orcamentos,orcamentos_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,ordens_servico,ordens_servico_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,ordens_servico,ordens_servico_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,ordens_servico,ordens_servico_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,ordens_servico,ordens_servico_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,pagamentos_funcionarios,authenticated can manage pagamentos funcionarios,PERMISSIVE,{authenticated},ALL,true,true
+public,parcelas_planos,authenticated can manage parcelas planos,PERMISSIVE,{authenticated},ALL,true,true
+public,perfis_usuarios,authenticated can manage perfis,PERMISSIVE,{authenticated},ALL,true,true
+public,perfis_usuarios,authenticated can read perfis,PERMISSIVE,{authenticated},SELECT,true,null
+public,permissoes_funcionarios,funcionario pode ver suas permissoes,PERMISSIVE,{authenticated},SELECT,(funcionario_id = auth.uid()),null
+public,planos_mensais,authenticated_manage_planos_mensais,PERMISSIVE,{authenticated},ALL,true,true
+public,planos_mensais_parcelas,authenticated_manage_planos_parcelas,PERMISSIVE,{authenticated},ALL,true,true
+public,pro_labore,authenticated can manage pro labore,PERMISSIVE,{authenticated},ALL,true,true
+public,tabela_descontos_quantidade,tabela_descontos_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,tabela_descontos_quantidade,tabela_descontos_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,tabela_descontos_quantidade,tabela_descontos_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,tabela_descontos_quantidade,tabela_descontos_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,tabela_precos,tabela_precos_delete_authenticated,PERMISSIVE,{authenticated},DELETE,true,null
+public,tabela_precos,tabela_precos_insert_authenticated,PERMISSIVE,{authenticated},INSERT,null,true
+public,tabela_precos,tabela_precos_select_authenticated,PERMISSIVE,{authenticated},SELECT,true,null
+public,tabela_precos,tabela_precos_update_authenticated,PERMISSIVE,{authenticated},UPDATE,true,true
+public,uso_planos_mensais,authenticated can manage uso planos,PERMISSIVE,{authenticated},ALL,true,true
