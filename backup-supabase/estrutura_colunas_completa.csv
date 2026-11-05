@@ -1,0 +1,101 @@
+table_name,ordinal_position,column_name,data_type,udt_name,is_nullable,column_default
+agenda,1,id,uuid,uuid,NO,gen_random_uuid()
+agenda,2,cliente_id,uuid,uuid,YES,null
+agenda,3,cliente_nome,text,text,NO,null
+agenda,4,cidade,text,text,NO,null
+agenda,5,servico,text,text,NO,null
+agenda,6,tecnico,text,text,NO,null
+agenda,7,data,date,date,NO,null
+agenda,8,horario,time without time zone,time,NO,null
+agenda,9,status,text,text,NO,'Agendado'::text
+agenda,10,created_at,timestamp with time zone,timestamptz,NO,now()
+agenda,11,updated_at,timestamp with time zone,timestamptz,NO,now()
+agenda,12,ajudante_id,uuid,uuid,YES,null
+ajudantes,1,id,uuid,uuid,NO,gen_random_uuid()
+ajudantes,2,nome,text,text,NO,null
+ajudantes,3,funcao,text,text,YES,null
+ajudantes,4,created_at,timestamp with time zone,timestamptz,NO,"timezone('utc'::text, now())"
+caixa_movimentacoes,1,id,uuid,uuid,NO,gen_random_uuid()
+caixa_movimentacoes,2,tipo,text,text,NO,null
+caixa_movimentacoes,3,descricao,text,text,NO,''::text
+caixa_movimentacoes,4,valor,numeric,numeric,NO,0
+caixa_movimentacoes,5,data_movimento,date,date,NO,CURRENT_DATE
+caixa_movimentacoes,6,forma_pagamento,text,text,YES,''::text
+caixa_movimentacoes,7,categoria,text,text,YES,''::text
+caixa_movimentacoes,8,funcionario_id,uuid,uuid,YES,null
+caixa_movimentacoes,9,funcionario_nome,text,text,YES,''::text
+caixa_movimentacoes,10,motivo,text,text,YES,''::text
+caixa_movimentacoes,11,observacoes,text,text,YES,''::text
+caixa_movimentacoes,12,criado_por,text,text,YES,''::text
+caixa_movimentacoes,13,created_at,timestamp with time zone,timestamptz,NO,now()
+caixa_movimentacoes,14,updated_at,timestamp with time zone,timestamptz,NO,now()
+caixa_movimentacoes,15,referencia,text,text,YES,''::text
+caixa_movimentacoes,16,salario_base,numeric,numeric,YES,0
+caixa_movimentacoes,17,adicionais,numeric,numeric,YES,0
+caixa_movimentacoes,18,descontos,numeric,numeric,YES,0
+caixa_movimentacoes,19,adiantamento,numeric,numeric,YES,0
+clientes,1,id,uuid,uuid,NO,gen_random_uuid()
+clientes,2,nome,text,text,NO,null
+clientes,3,tipo,text,text,NO,'Residencial'::text
+clientes,4,documento,text,text,YES,null
+clientes,5,telefone,text,text,NO,null
+clientes,6,whatsapp,text,text,YES,null
+clientes,7,email,text,text,YES,null
+clientes,8,cidade,text,text,NO,null
+clientes,9,bairro,text,text,YES,null
+clientes,10,endereco,text,text,YES,null
+clientes,11,numero,text,text,YES,null
+clientes,12,complemento,text,text,YES,null
+clientes,13,cep,text,text,YES,null
+clientes,14,status,text,text,NO,'Ativo'::text
+clientes,15,observacoes,text,text,YES,null
+clientes,16,created_at,timestamp with time zone,timestamptz,NO,now()
+clientes,17,updated_at,timestamp with time zone,timestamptz,NO,now()
+configuracoes_empresa,1,id,uuid,uuid,NO,gen_random_uuid()
+configuracoes_empresa,2,nome,text,text,NO,'ClimaPro'::text
+configuracoes_empresa,3,telefone,text,text,YES,null
+configuracoes_empresa,4,email,text,text,YES,null
+configuracoes_empresa,5,cidade,text,text,YES,null
+configuracoes_empresa,6,endereco,text,text,YES,null
+configuracoes_empresa,7,logo_url,text,text,YES,null
+configuracoes_empresa,8,notificacoes,boolean,bool,NO,true
+configuracoes_empresa,9,created_at,timestamp with time zone,timestamptz,NO,now()
+configuracoes_empresa,10,updated_at,timestamp with time zone,timestamptz,NO,now()
+contas_financeiras,1,id,uuid,uuid,NO,gen_random_uuid()
+contas_financeiras,2,tipo,text,text,NO,null
+contas_financeiras,3,descricao,text,text,NO,''::text
+contas_financeiras,4,pessoa,text,text,YES,''::text
+contas_financeiras,5,documento,text,text,YES,''::text
+contas_financeiras,6,valor,numeric,numeric,NO,0
+contas_financeiras,7,vencimento,date,date,YES,null
+contas_financeiras,8,data_pagamento,date,date,YES,null
+contas_financeiras,9,forma_pagamento,text,text,YES,''::text
+contas_financeiras,10,categoria,text,text,YES,''::text
+contas_financeiras,11,status,text,text,NO,'Pendente'::text
+contas_financeiras,12,observacoes,text,text,YES,''::text
+contas_financeiras,13,created_at,timestamp with time zone,timestamptz,NO,now()
+contas_financeiras,14,updated_at,timestamp with time zone,timestamptz,NO,now()
+contas_pagar,1,id,uuid,uuid,NO,gen_random_uuid()
+contas_pagar,2,descricao,text,text,NO,''::text
+contas_pagar,3,fornecedor,text,text,YES,''::text
+contas_pagar,4,categoria,text,text,YES,''::text
+contas_pagar,5,valor,numeric,numeric,NO,0
+contas_pagar,6,vencimento,date,date,YES,null
+contas_pagar,7,data_pagamento,date,date,YES,null
+contas_pagar,8,forma_pagamento,text,text,YES,''::text
+contas_pagar,9,status,text,text,NO,'Pendente'::text
+contas_pagar,10,observacoes,text,text,YES,''::text
+contas_pagar,11,created_at,timestamp with time zone,timestamptz,NO,now()
+contas_pagar,12,updated_at,timestamp with time zone,timestamptz,NO,now()
+contas_receber,1,id,uuid,uuid,NO,gen_random_uuid()
+contas_receber,2,cliente_id,uuid,uuid,YES,null
+contas_receber,3,cliente_nome,text,text,NO,''::text
+contas_receber,4,descricao,text,text,NO,''::text
+contas_receber,5,referencia,text,text,YES,''::text
+contas_receber,6,valor,numeric,numeric,NO,0
+contas_receber,7,vencimento,date,date,YES,null
+contas_receber,8,data_recebimento,date,date,YES,null
+contas_receber,9,forma_pagamento,text,text,YES,''::text
+contas_receber,10,status,text,text,NO,'Pendente'::text
+contas_receber,11,observacoes,text,text,YES,''::text
+contas_receber,12,created_at,timestamp with time zone,timestamptz,NO,now()
