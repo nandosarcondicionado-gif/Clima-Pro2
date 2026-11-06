@@ -1,0 +1,101 @@
+table_name,ordinal_position,column_name,data_type,udt_name,is_nullable,column_default
+contas_receber,13,updated_at,timestamp with time zone,timestamptz,NO,now()
+contrato_equipamentos,1,id,uuid,uuid,NO,gen_random_uuid()
+contrato_equipamentos,2,contrato_id,uuid,uuid,NO,null
+contrato_equipamentos,3,equipamento_id,uuid,uuid,YES,null
+contrato_equipamentos,4,ambiente,text,text,YES,null
+contrato_equipamentos,5,marca,text,text,YES,null
+contrato_equipamentos,6,modelo,text,text,YES,null
+contrato_equipamentos,7,btu,text,text,YES,null
+contrato_equipamentos,8,tipo,text,text,YES,null
+contrato_equipamentos,9,numero_serie,text,text,YES,null
+contrato_equipamentos,10,manual,boolean,bool,NO,false
+contrato_equipamentos,11,created_at,timestamp with time zone,timestamptz,NO,now()
+contratos,1,id,uuid,uuid,NO,gen_random_uuid()
+contratos,2,numero,text,text,NO,null
+contratos,3,cliente_id,uuid,uuid,YES,null
+contratos,4,cliente_nome,text,text,NO,null
+contratos,5,cidade,text,text,NO,null
+contratos,6,plano,text,text,NO,null
+contratos,7,quantidade_equipamentos,integer,int4,NO,1
+contratos,8,valor_mensal,numeric,numeric,NO,0
+contratos,9,data_inicio,date,date,NO,CURRENT_DATE
+contratos,10,proxima_visita,date,date,YES,null
+contratos,11,status,text,text,NO,'Ativo'::text
+contratos,12,created_at,timestamp with time zone,timestamptz,NO,now()
+contratos,13,updated_at,timestamp with time zone,timestamptz,NO,now()
+contratos,14,observacoes,text,text,YES,null
+contratos_planos_mensais,1,id,uuid,uuid,NO,gen_random_uuid()
+contratos_planos_mensais,2,plano_id,uuid,uuid,NO,null
+contratos_planos_mensais,3,numero_contrato,text,text,NO,null
+contratos_planos_mensais,4,status,text,text,NO,'Rascunho'::text
+contratos_planos_mensais,5,texto_contrato,text,text,YES,''::text
+contratos_planos_mensais,6,assinatura_cliente,text,text,YES,''::text
+contratos_planos_mensais,7,assinatura_responsavel,text,text,YES,''::text
+contratos_planos_mensais,8,cliente_assinou_em,timestamp with time zone,timestamptz,YES,null
+contratos_planos_mensais,9,responsavel_assinou_em,timestamp with time zone,timestamptz,YES,null
+contratos_planos_mensais,10,nome_responsavel,text,text,YES,''::text
+contratos_planos_mensais,11,cargo_responsavel,text,text,YES,''::text
+contratos_planos_mensais,12,created_at,timestamp with time zone,timestamptz,NO,now()
+contratos_planos_mensais,13,updated_at,timestamp with time zone,timestamptz,NO,now()
+equipamentos,1,id,uuid,uuid,NO,gen_random_uuid()
+equipamentos,2,cliente_id,uuid,uuid,NO,null
+equipamentos,3,ambiente,text,text,YES,null
+equipamentos,4,marca,text,text,NO,null
+equipamentos,5,modelo,text,text,NO,null
+equipamentos,6,btu,text,text,NO,'12.000'::text
+equipamentos,7,tipo,text,text,NO,'Split Inverter'::text
+equipamentos,8,numero_serie,text,text,YES,null
+equipamentos,9,ultima_manutencao,date,date,YES,null
+equipamentos,10,proxima_manutencao,date,date,YES,null
+equipamentos,11,status,text,text,NO,'Ativo'::text
+equipamentos,12,created_at,timestamp with time zone,timestamptz,NO,now()
+equipamentos,13,updated_at,timestamp with time zone,timestamptz,NO,now()
+estoque_produtos,1,id,uuid,uuid,NO,gen_random_uuid()
+estoque_produtos,2,nome,text,text,NO,null
+estoque_produtos,3,categoria,text,text,NO,null
+estoque_produtos,4,unidade,text,text,NO,'un'::text
+estoque_produtos,5,quantidade,numeric,numeric,NO,0
+estoque_produtos,6,estoque_minimo,numeric,numeric,NO,0
+estoque_produtos,7,custo,numeric,numeric,NO,0
+estoque_produtos,8,fornecedor,text,text,YES,null
+estoque_produtos,9,created_at,timestamp with time zone,timestamptz,NO,now()
+estoque_produtos,10,updated_at,timestamp with time zone,timestamptz,NO,now()
+funcionario_valor_hora,1,id,uuid,uuid,NO,gen_random_uuid()
+funcionario_valor_hora,2,funcionario_id,uuid,uuid,NO,null
+funcionario_valor_hora,3,valor_hora,numeric,numeric,NO,0
+funcionario_valor_hora,4,arredondamento_minutos,integer,int4,NO,60
+funcionario_valor_hora,5,atualizado_por,uuid,uuid,YES,null
+funcionario_valor_hora,6,created_at,timestamp with time zone,timestamptz,NO,now()
+funcionario_valor_hora,7,updated_at,timestamp with time zone,timestamptz,NO,now()
+funcionarios,1,id,uuid,uuid,NO,gen_random_uuid()
+funcionarios,2,nome,text,text,NO,null
+funcionarios,3,email,text,text,NO,null
+funcionarios,4,funcao,text,text,YES,null
+funcionarios,5,status,text,text,NO,'ativo'::text
+funcionarios,6,created_at,timestamp with time zone,timestamptz,NO,now()
+funcionarios,7,bairro,text,text,YES,null
+funcionarios,8,cargo,text,text,YES,null
+funcionarios,9,telefone,text,text,YES,null
+funcionarios,10,celular,text,text,YES,null
+funcionarios,11,endereco,text,text,YES,null
+funcionarios,12,numero,text,text,YES,null
+funcionarios,13,complemento,text,text,YES,null
+funcionarios,14,cidade,text,text,YES,null
+funcionarios,15,estado,text,text,YES,null
+funcionarios,16,cep,text,text,YES,null
+funcionarios,17,observacoes,text,text,YES,null
+funcionarios,18,cpf,text,text,YES,null
+funcionarios,19,rg,text,text,YES,null
+funcionarios,20,whatsapp,text,text,YES,null
+funcionarios,21,tipo_vinculo,text,text,YES,null
+funcionarios,22,data_nascimento,date,date,YES,null
+funcionarios,23,data_admissao,date,date,YES,null
+funcionarios,24,salario,numeric,numeric,YES,null
+funcionarios,25,forma_pagamento,text,text,YES,null
+funcionarios,26,chave_pix,text,text,YES,null
+funcionarios,27,updated_at,timestamp with time zone,timestamptz,YES,null
+funcionarios,28,permitir_acesso,boolean,bool,NO,false
+funcionarios,29,perfil,text,text,NO,'Tecnico'::text
+funcionarios,30,permissoes,jsonb,jsonb,NO,'{}'::jsonb
+funcionarios,31,auth_user_id,uuid,uuid,YES,null

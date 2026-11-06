@@ -1,69 +1,101 @@
-backup_parte_2
-"{
-    ""agenda"": null,
-    ""ajudantes"": [
-        {
-            ""id"": ""6111e6ae-381e-4e25-b9d5-62182f9449b9"",
-            ""nome"": ""Letícia"",
-            ""funcao"": ""Ajudante de técnico"",
-            ""created_at"": ""2026-09-30T00:45:15.178015+00:00""
-        }
-    ],
-    ""contas_pagar"": null,
-    ""contas_receber"": null,
-    ""contas_financeiras"": null,
-    ""horas_funcionarios"": null,
-    ""caixa_movimentacoes"": null,
-    ""historico_manutencao"": null,
-    ""contrato_equipamentos"": null,
-    ""funcionario_valor_hora"": null,
-    ""lancamentos_financeiros"": [
-        {
-            ""id"": ""aacc13ee-22db-42cd-86fd-b3a4220a4f22"",
-            ""data"": ""2026-09-27"",
-            ""tipo"": ""Entrada"",
-            ""valor"": 278.00,
-            ""status"": ""Pago"",
-            ""cliente"": ""Bruna"",
-            ""categoria"": ""Manutenção"",
-            ""descricao"": ""Manutenção dda condensadora"",
-            ""cliente_id"": null,
-            ""created_at"": ""2026-09-27T03:16:38.368841+00:00"",
-            ""updated_at"": ""2026-09-27T03:16:38.368841+00:00"",
-            ""observacoes"": null,
-            ""cliente_nome"": null
-        },
-        {
-            ""id"": ""846d5d3c-ad15-4434-aa27-b862b135050f"",
-            ""data"": ""2026-09-21"",
-            ""tipo"": ""Entrada"",
-            ""valor"": 94.86,
-            ""status"": ""Pago"",
-            ""cliente"": ""Bruna"",
-            ""categoria"": ""Materiais"",
-            ""descricao"": ""Recarga de gás R22 / troca de tubulação/reparo do compressor"",
-            ""cliente_id"": null,
-            ""created_at"": ""2026-09-25T01:10:32.632179+00:00"",
-            ""updated_at"": ""2026-09-30T23:51:49.313438+00:00"",
-            ""observacoes"": ""Materiais 325,00"",
-            ""cliente_nome"": null
-        },
-        {
-            ""id"": ""3537045d-e046-4892-96f7-a3a9551afefe"",
-            ""data"": ""2026-09-26"",
-            ""tipo"": ""Entrada"",
-            ""valor"": 197.18,
-            ""status"": ""Pago"",
-            ""cliente"": ""Daniela"",
-            ""categoria"": ""Materiais"",
-            ""descricao"": ""Materiais OS OS-0002 - Daniela"",
-            ""cliente_id"": null,
-            ""created_at"": ""2026-09-26T22:13:29.976805+00:00"",
-            ""updated_at"": ""2026-10-01T01:12:37.220905+00:00"",
-            ""observacoes"": ""Materiais previstos no orçamento ORC-0007: R$ 398,00"",
-            ""cliente_nome"": null
-        }
-    ],
-    ""contratos_planos_mensais"": null,
-    ""manutencoes_equipamentos"": null
-}"
+table_name,ordinal_position,column_name,data_type,udt_name,is_nullable,column_default
+orcamentos,18,valor_final,numeric,numeric,YES,0
+orcamentos,19,materiais_valor,numeric,numeric,YES,0
+orcamentos,20,total_geral,numeric,numeric,YES,0
+orcamentos,21,valor_servicos,numeric,numeric,YES,0
+orcamentos,22,valor_materiais,numeric,numeric,YES,0
+orcamentos,23,materiais_descricao,text,text,YES,''::text
+orcamentos,24,equipamento,text,text,YES,null
+orcamentos,25,materiais_custo_valor,numeric,numeric,YES,null
+ordem_servico_itens,1,id,uuid,uuid,NO,gen_random_uuid()
+ordem_servico_itens,2,ordem_servico_id,uuid,uuid,YES,null
+ordem_servico_itens,3,descricao,text,text,NO,null
+ordem_servico_itens,4,valor_balcao,numeric,numeric,YES,0
+ordem_servico_itens,5,valor_tecnico,numeric,numeric,YES,0
+ordem_servico_itens,6,lucro,numeric,numeric,YES,0
+ordem_servico_itens,7,created_at,timestamp with time zone,timestamptz,NO,"timezone('utc'::text, now())"
+ordens_servico,1,id,uuid,uuid,NO,gen_random_uuid()
+ordens_servico,2,numero,text,text,NO,null
+ordens_servico,3,cliente_id,uuid,uuid,YES,null
+ordens_servico,4,cliente_nome,text,text,NO,null
+ordens_servico,5,equipamento,text,text,YES,null
+ordens_servico,6,cidade,text,text,NO,null
+ordens_servico,7,tipo_servico,text,text,NO,null
+ordens_servico,8,descricao,text,text,YES,null
+ordens_servico,9,data,date,date,YES,null
+ordens_servico,10,tecnico,text,text,YES,null
+ordens_servico,11,valor,numeric,numeric,NO,0
+ordens_servico,12,status,text,text,NO,'Aberta'::text
+ordens_servico,13,observacoes,text,text,YES,null
+ordens_servico,14,created_at,timestamp with time zone,timestamptz,NO,now()
+ordens_servico,15,updated_at,timestamp with time zone,timestamptz,NO,now()
+ordens_servico,16,valor_servicos,numeric,numeric,YES,0
+ordens_servico,17,valor_materiais,numeric,numeric,YES,0
+ordens_servico,18,materiais_descricao,text,text,YES,''::text
+ordens_servico,19,materiais_pago,boolean,bool,YES,false
+ordens_servico,20,materiais_pago_em,timestamp with time zone,timestamptz,YES,null
+ordens_servico,21,plano_mensal_id,uuid,uuid,YES,null
+ordens_servico,22,plano_mensal_coberto,boolean,bool,YES,false
+ordens_servico,23,plano_mensal_status,text,text,YES,''::text
+ordens_servico,24,plano_mensal_aviso,text,text,YES,''::text
+ordens_servico,25,plano_mensal_servico_incluso,text,text,YES,''::text
+ordens_servico,26,financeiro_status,text,text,YES,'Pendente'::text
+ordens_servico,27,financeiro_movimentacao_id,uuid,uuid,YES,null
+ordens_servico,28,forma_pagamento,text,text,YES,''::text
+ordens_servico,29,data_pagamento,date,date,YES,null
+ordens_servico,30,equipamento_capacidade,text,text,YES,null
+ordens_servico,31,equipamento_id,uuid,uuid,YES,null
+ordens_servico,32,equipamento_marca,text,text,YES,null
+ordens_servico,33,equipamento_modelo,text,text,YES,null
+ordens_servico,34,tecnico_id,uuid,uuid,YES,null
+ordens_servico,35,ajudante,text,text,YES,null
+ordens_servico,36,assinatura_cliente,text,text,YES,null
+ordens_servico,37,assinatura_ajudante,text,text,YES,null
+ordens_servico,38,lucro,numeric,numeric,YES,0
+ordens_servico,39,assinatura_admin,text,text,YES,null
+ordens_servico,40,valor_tecnico,numeric,numeric,YES,null
+ordens_servico,41,valor_ajudante,numeric,numeric,YES,null
+ordens_servico,42,ajudante_id,uuid,uuid,YES,null
+ordens_servico,43,valor_servicios,numeric,numeric,YES,0
+ordens_servico,44,valor_total,numeric,numeric,YES,0
+ordens_servico,45,pagamento_status,text,text,YES,'Pendente'::text
+ordens_servico,46,valor_pago,numeric,numeric,YES,0
+ordens_servico,47,observacao_pagamento,text,text,YES,null
+ordens_servico,48,materiais_forma_pagamento,text,text,YES,null
+pagamentos_funcionarios,1,id,uuid,uuid,NO,gen_random_uuid()
+pagamentos_funcionarios,2,funcionario_id,uuid,uuid,NO,null
+pagamentos_funcionarios,3,funcionario_nome,text,text,NO,''::text
+pagamentos_funcionarios,4,referencia,text,text,NO,''::text
+pagamentos_funcionarios,5,salario_base,numeric,numeric,NO,0
+pagamentos_funcionarios,6,adicionais,numeric,numeric,NO,0
+pagamentos_funcionarios,7,descontos,numeric,numeric,NO,0
+pagamentos_funcionarios,8,adiantamento,numeric,numeric,NO,0
+pagamentos_funcionarios,9,valor_pago,numeric,numeric,NO,0
+pagamentos_funcionarios,10,data_pagamento,date,date,YES,null
+pagamentos_funcionarios,11,forma_pagamento,text,text,YES,''::text
+pagamentos_funcionarios,12,status,text,text,NO,'Pendente'::text
+pagamentos_funcionarios,13,observacoes,text,text,YES,''::text
+pagamentos_funcionarios,14,created_at,timestamp with time zone,timestamptz,NO,now()
+pagamentos_funcionarios,15,updated_at,timestamp with time zone,timestamptz,NO,now()
+pagamentos_funcionarios,16,caixa_movimentacao_id,uuid,uuid,YES,null
+parcelas_planos,1,id,uuid,uuid,NO,gen_random_uuid()
+parcelas_planos,2,plano_id,uuid,uuid,NO,null
+parcelas_planos,3,numero_parcela,integer,int4,NO,null
+parcelas_planos,4,competencia,date,date,NO,null
+parcelas_planos,5,vencimento,date,date,NO,null
+parcelas_planos,6,valor,numeric,numeric,NO,0
+parcelas_planos,7,status,text,text,NO,'Aberta'::text
+parcelas_planos,8,pago_em,timestamp with time zone,timestamptz,YES,null
+parcelas_planos,9,forma_pagamento,text,text,YES,''::text
+parcelas_planos,10,observacoes,text,text,YES,''::text
+parcelas_planos,11,created_at,timestamp with time zone,timestamptz,NO,now()
+parcelas_planos,12,updated_at,timestamp with time zone,timestamptz,NO,now()
+perfis_usuarios,1,id,uuid,uuid,NO,null
+perfis_usuarios,2,nome,text,text,YES,''::text
+perfis_usuarios,3,email,text,text,YES,''::text
+perfis_usuarios,4,perfil,text,text,NO,'Tecnico'::text
+perfis_usuarios,5,ativo,boolean,bool,NO,true
+perfis_usuarios,6,created_at,timestamp with time zone,timestamptz,NO,now()
+perfis_usuarios,7,updated_at,timestamp with time zone,timestamptz,NO,now()
+permissoes_funcionarios,1,id,bigint,int8,NO,null
+permissoes_funcionarios,2,funcionario_id,uuid,uuid,NO,null
