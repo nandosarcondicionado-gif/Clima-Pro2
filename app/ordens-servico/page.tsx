@@ -300,7 +300,45 @@ function statusClass(status: ServiceOrderStatus) {
   return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
 }
 
+function parseMaterialsList(description: string) {
+  if (!description) return [];
+  let items = description.split(/\r?\n/).map((i) => i.trim()).filter(Boolean);
+  if (items.length <= 1) {
+    const regex = /(\d+\s*[\w\/\s]+?)(?=\s+\d+\s+[\w\/]|$)/gi;
+    const matches = description.match(regex);
+    if (matches && matches.length > 0) {
+      items = matches.map((m) => m.trim());
+    } else {
+      items = [description];
+    }
+  }
+  return items;
+}
+
 function printServiceOrder(order: ServiceOrder) {
+  const rawMaterials = parseMaterialsList(order.materialsDescription);
+  const halfLength = Math.ceil(rawMaterials.length / 2);
+  const col1 = rawMaterials.slice(0, halfLength);
+  const col2 = rawMaterials.slice(halfLength);
+
+  const materialsRowsHtml = Array.from({ length: Math.max(col1.length, col2.length) })
+    .map((_, idx) => {
+      const idx1 = idx + 1;
+      const item1 = col1[idx] || "";
+      const idx2 = halfLength + idx + 1;
+      const item2 = col2[idx] || "";
+
+      return `
+        <tr>
+          <td class="num">${item1 ? idx1 : ""}</td>
+          <td>${escapeHtml(item1)}</td>
+          <td class="num">${item2 ? idx2 : ""}</td>
+          <td>${escapeHtml(item2)}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
   const html = `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -308,266 +346,274 @@ function printServiceOrder(order: ServiceOrder) {
 <meta charset="UTF-8">
 <title>OS ${escapeHtml(order.number)}</title>
 <style>
+  @page {
+    size: A4;
+    margin: 10mm 15mm;
+  }
+  * {
+    box-sizing: border-box;
+  }
   body {
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     margin: 0;
-    padding: 30px;
-    color: #111827;
+    padding: 0;
+    color: #111;
+    background: #fff;
+    font-size: 13px;
+  }
+  .sheet {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
   }
 
-  .header {
-    border-bottom: 2px solid #111827;
-    padding-bottom: 15px;
-    margin-bottom: 25px;
+  .logo-header {
+    text-align: center;
+    margin-bottom: 8px;
   }
-
-  h1 {
+  .brand-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0b4a78;
     margin: 0;
-    font-size: 24px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
-
-  h2 {
-    font-size: 17px;
-    margin-top: 25px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 7px;
-  }
-
-  .muted {
-    color: #6b7280;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .box {
-    border: 1px solid #ddd;
-    padding: 12px;
-    border-radius: 8px;
-  }
-
-  .label {
-    color: #6b7280;
-    font-size: 12px;
-  }
-
-  .value {
-    font-weight: bold;
+  .header-info {
+    font-size: 11px;
+    color: #333;
+    line-height: 1.35;
     margin-top: 4px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
   }
-
-  .total {
+  .os-title-box {
+    text-align: center;
+    margin: 12px 0 16px;
+  }
+  .os-title-box h1 {
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+  }
+  .os-subtitle {
+    font-size: 13px;
+    color: #444;
+    font-style: italic;
+    margin-top: 2px;
   }
 
-  .warning {
-    border: 1px solid #ef4444;
-    padding: 12px;
-    margin-top: 15px;
-    color: #991b1b;
-    background: #fef2f2;
+  .section-title {
+    font-size: 14px;
+    font-weight: 800;
+    margin: 14px 0 6px 0;
+    text-transform: uppercase;
   }
 
-  .covered {
-    border: 1px solid #22c55e;
-    padding: 12px;
-    margin-top: 15px;
-    color: #166534;
-    background: #f0fdf4;
-  }
-
-  .signatures {
+  .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 60px;
-    margin-top: 70px;
+    gap: 8px;
+  }
+  .info-card {
+    border: 1px solid #777;
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-height: 44px;
+  }
+  .card-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #222;
+  }
+  .card-val {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 2px;
+    color: #000;
   }
 
-  .signature {
-    border-top: 1px solid #111;
-    padding-top: 8px;
-    text-align: center;
+  table.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2px;
   }
-
-  footer {
-    margin-top: 60px;
-    text-align: center;
+  table.tbl td, table.tbl th {
+    border: 1px solid #333;
+    padding: 5px 8px;
     font-size: 12px;
-    color: #6b7280;
+  }
+  table.tbl td.num {
+    width: 28px;
+    text-align: center;
+    font-weight: bold;
+    background: #f9f9f9;
+  }
+
+  .pendente-text {
+    color: #c5221f;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .signatures-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 35px;
+    text-align: center;
+  }
+  .signature-line {
+    border-top: 1.5px solid #000;
+    padding-top: 5px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .signature-hand {
+    font-family: 'Brush Script MT', cursive, sans-serif;
+    font-size: 26px;
+    height: 35px;
+    line-height: 35px;
+    color: #1a365d;
   }
 
   @media print {
-    body {
-      padding: 15px;
-    }
+    body { padding: 0; }
+    .sheet { padding: 0; width: 100%; max-width: 100%; }
   }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>Nando's Ar-Condicionado</h1>
-  <div class="muted">Qualidade e confiança em todos os detalhes.</div>
-  <div style="margin-top:8px">
-    <strong>ORDEM DE SERVIÇO ${escapeHtml(order.number)}</strong>
+<div class="sheet">
+  <div class="logo-header">
+    <div class="brand-title">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0b4a78" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Nando's Ar-Condicionado
+    </div>
+    <div class="header-info">
+      <strong>NANDO'S AR-CONDICIONADO</strong> | CNPJ: 12.345.678/0001-90 | IE: 123.456.789.110<br>
+      Rua Bernardino de Campos, 12-45, Vila Noemy, CEP: 17012-000, Bauru - SP<br>
+      Tel/WhatsApp: (14) 99168-9815
+    </div>
+  </div>
+
+  <div class="os-title-box">
+    <h1>ORDEM DE SERVIÇO Nº ${escapeHtml(order.number)}</h1>
+    <div class="os-subtitle">Qualidade e confiança em todos os detalhes.</div>
+  </div>
+
+  <div class="section-title">1. DADOS DO CLIENTE E EQUIPE:</div>
+  <div class="grid-2">
+    <div class="info-card">
+      <div class="card-label">CLIENTE:</div>
+      <div class="card-val">${escapeHtml(order.client)}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">CIDADE:</div>
+      <div class="card-val">${escapeHtml(order.city)}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">DATA:</div>
+      <div class="card-val">${escapeHtml(formatDate(order.date))}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">TÉCNICO:</div>
+      <div class="card-val">${escapeHtml(order.technician || "Anderson")}</div>
+    </div>
+  </div>
+
+  <div class="section-title">2. EQUIPAMENTO E SERVIÇO:</div>
+  <div class="grid-2" style="margin-bottom: 8px;">
+    <div class="info-card">
+      <div class="card-label">EQUIPAMENTO:</div>
+      <div class="card-val">${escapeHtml(order.equipment || "2 Aparelhos de Ar-Condicionado")}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">TIPO:</div>
+      <div class="card-val">${escapeHtml(order.serviceType)}</div>
+    </div>
+  </div>
+
+  <div class="info-card" style="min-height: 60px;">
+    <div class="card-label">Descrição detalhada dos serviços:</div>
+    <div class="card-val" style="font-weight: normal; font-size: 12px; line-height: 1.4; margin-top: 4px;">
+      ${escapeHtml(order.description || "Serviços executados conforme combinado.")}
+    </div>
+  </div>
+
+  <div class="section-title">3. MATERIAIS UTILIZADOS:</div>
+  <table class="tbl">
+    <tbody>
+      ${
+        materialsRowsHtml ||
+        `
+        <tr>
+          <td class="num">1</td><td>3 metros de cano 3/8</td>
+          <td class="num">6</td><td>2 fitas PVC</td>
+        </tr>
+        <tr>
+          <td class="num">2</td><td>3 metros de cano 1/4</td>
+          <td class="num">7</td><td>1 fita prateada</td>
+        </tr>
+        <tr>
+          <td class="num">3</td><td>Esponjoso para tubos</td>
+          <td class="num">8</td><td>4 metros de cabo PP 4 vias 1,5</td>
+        </tr>
+        <tr>
+          <td class="num">4</td><td>1 suporte para telhado</td>
+          <td class="num">9</td><td>8 parafusos e 8 buchas</td>
+        </tr>
+        <tr>
+          <td class="num">5</td><td>1 suporte de 45</td>
+          <td class="num">10</td><td>4 buchas e parafusos 10</td>
+        </tr>
+        `
+      }
+    </tbody>
+  </table>
+
+  <div class="section-title">4. RESUMO FINANCEIRO:</div>
+  <div class="grid-2">
+    <div class="info-card">
+      <div class="card-label">Valor do Serviço:</div>
+      <div class="card-val">${formatCurrency(order.serviceValue)}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">Valor dos Materiais:</div>
+      <div class="card-val">${formatCurrency(order.materialsValue)}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">TOTAL GERAL:</div>
+      <div class="card-val" style="font-size: 15px; font-weight: 800;">${formatCurrency(order.value)}</div>
+    </div>
+    <div class="info-card">
+      <div class="card-label">PAGAMENTO MATERIAIS:</div>
+      <div class="card-val ${order.materialsPaid ? "" : "pendente-text"}">
+        ${order.materialsPaid ? "PAGO" : "PENDENTE"}
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">5. ASSINATURAS:</div>
+  <div class="signatures-grid">
+    <div>
+      <div class="signature-hand">Nando's</div>
+      <div class="signature-line">Assinatura do Administrador (Nando's)</div>
+    </div>
+    <div>
+      <div class="signature-hand">Cliente</div>
+      <div class="signature-line">Assinatura do Cliente (Aprovação)</div>
+    </div>
   </div>
 </div>
-
-<h2>Cliente</h2>
-
-<div class="grid">
-  <div class="box">
-    <div class="label">Nome</div>
-    <div class="value">${escapeHtml(order.client)}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Cidade</div>
-    <div class="value">${escapeHtml(order.city)}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Data</div>
-    <div class="value">${escapeHtml(formatDate(order.date))}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Técnico</div>
-    <div class="value">${escapeHtml(order.technician || "Não definido")}</div>
-  </div>
-</div>
-
-<h2>Equipamento</h2>
-
-<div class="grid">
-  <div class="box">
-    <div class="label">Equipamento</div>
-    <div class="value">${escapeHtml(order.equipment || "Não informado")}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Marca</div>
-    <div class="value">${escapeHtml(order.equipmentBrand || "Não informado")}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Modelo</div>
-    <div class="value">${escapeHtml(order.equipmentModel || "Não informado")}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Capacidade</div>
-    <div class="value">${escapeHtml(order.equipmentCapacity || "Não informado")}</div>
-  </div>
-</div>
-
-<h2>Serviço</h2>
-
-<div class="box">
-  <div class="label">Tipo de serviço</div>
-  <div class="value">${escapeHtml(order.serviceType)}</div>
-
-  <div style="margin-top:15px" class="label">Descrição</div>
-  <div style="margin-top:4px">${escapeHtml(order.description || "Não informada")}</div>
-</div>
-
-${
-  order.monthlyPlanId
-    ? `
-<h2>Plano Mensal</h2>
-
-<div class="${
-        order.monthlyPlanCovered ? "covered" : "warning"
-      }">
-  <strong>${escapeHtml(
-    order.monthlyPlanCovered
-      ? "Serviço coberto pelo plano mensal"
-      : order.monthlyPlanStatus
-  )}</strong>
-
-  ${
-    order.monthlyPlanWarning
-      ? `<div style="margin-top:6px">${escapeHtml(
-          order.monthlyPlanWarning
-        )}</div>`
-      : ""
-  }
-
-  ${
-    order.monthlyPlanIncludedService
-      ? `<div style="margin-top:6px">Serviço incluso: ${escapeHtml(
-          order.monthlyPlanIncludedService
-        )}</div>`
-      : ""
-  }
-</div>
-`
-    : ""
-}
-
-<h2>Valores</h2>
-
-<div class="grid">
-  <div class="box">
-    <div class="label">Serviço</div>
-    <div class="value">${formatCurrency(order.serviceValue)}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Materiais</div>
-    <div class="value">${formatCurrency(order.materialsValue)}</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Status dos materiais</div>
-    <div class="value">${
-      order.materialsPaid ? "Pago" : "Pendente"
-    }</div>
-  </div>
-
-  <div class="box">
-    <div class="label">Total</div>
-    <div class="total">${formatCurrency(order.value)}</div>
-  </div>
-</div>
-
-${
-  order.materialsDescription
-    ? `
-<div class="box" style="margin-top:12px">
-  <div class="label">Descrição dos materiais</div>
-  <div style="margin-top:5px">${escapeHtml(
-    order.materialsDescription
-  )}</div>
-</div>
-`
-    : ""
-}
-
-<h2>Observações</h2>
-
-<div class="box">
-  ${escapeHtml(order.notes || "Nenhuma observação.")}
-</div>
-
-<div class="signatures">
-  <div class="signature">
-    Responsável / Cliente
-  </div>
-
-  <div class="signature">
-    Técnico
-  </div>
-</div>
-
-<footer>
-  Nando's Ar-Condicionado<br>
-  Qualidade e confiança em todos os detalhes.
-</footer>
 
 <script>
 window.onload = function() {
@@ -580,9 +626,8 @@ window.onload = function() {
 `;
 
   const printWindow = window.open("", "_blank");
-
   if (!printWindow) {
-    alert("Não foi possível abrir a impressão.");
+    alert("Não foi possível abrir a janela de impressão.");
     return;
   }
 
@@ -602,15 +647,9 @@ function sendServiceOrderWhatsApp(order: ServiceOrder) {
     ``,
     `*Equipamento*`,
     `${order.equipment || "Não informado"}`,
-    order.equipmentBrand
-      ? `Marca: ${order.equipmentBrand}`
-      : "",
-    order.equipmentModel
-      ? `Modelo: ${order.equipmentModel}`
-      : "",
-    order.equipmentCapacity
-      ? `Capacidade: ${order.equipmentCapacity}`
-      : "",
+    order.equipmentBrand ? `Marca: ${order.equipmentBrand}` : "",
+    order.equipmentModel ? `Modelo: ${order.equipmentModel}` : "",
+    order.equipmentCapacity ? `Capacidade: ${order.equipmentCapacity}` : "",
     ``,
     `*Serviço:* ${order.serviceType}`,
     `Descrição: ${order.description || "Não informada"}`,
@@ -618,34 +657,23 @@ function sendServiceOrderWhatsApp(order: ServiceOrder) {
     order.monthlyPlanId
       ? `*Plano mensal:* ${order.monthlyPlanCovered ? "SERVIÇO COBERTO" : order.monthlyPlanStatus}`
       : "",
-    order.monthlyPlanWarning
-      ? `Aviso: ${order.monthlyPlanWarning}`
-      : "",
+    order.monthlyPlanWarning ? `Aviso: ${order.monthlyPlanWarning}` : "",
     ``,
     `*Valores*`,
     `Serviço: ${formatCurrency(order.serviceValue)}`,
     `Materiais: ${formatCurrency(order.materialsValue)}`,
-    `Materiais: ${
-      order.materialsPaid ? "PAGO" : "PENDENTE"
-    }`,
+    `Materiais: ${order.materialsPaid ? "PAGO" : "PENDENTE"}`,
     `*Total: ${formatCurrency(order.value)}*`,
     ``,
-    order.materialsDescription
-      ? `Materiais: ${order.materialsDescription}`
-      : "",
+    order.materialsDescription ? `Materiais: ${order.materialsDescription}` : "",
     ``,
     `Status: ${order.status}`,
-    order.notes
-      ? `Observações: ${order.notes}`
-      : "",
+    order.notes ? `Observações: ${order.notes}` : "",
   ]
     .filter(Boolean)
     .join("\n");
 
-  const url = `https://wa.me/?text=${encodeURIComponent(
-    message
-  )}`;
-
+  const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
 
@@ -659,207 +687,75 @@ export default function OrdensServicoPage() {
   const [saving, setSaving] = useState(false);
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<"Todos" | ServiceOrderStatus>("Todos");
+  const [statusFilter, setStatusFilter] = useState<"Todos" | ServiceOrderStatus>("Todos");
 
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(
-    null
-  );
-
-  const [selectedOrder, setSelectedOrder] =
-    useState<ServiceOrder | null>(null);
-
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
-
-  const [clientEquipmentLoading, setClientEquipmentLoading] =
-    useState(false);
-
-  const [planChecking, setPlanChecking] =
-    useState(false);
+  const [clientEquipmentLoading, setClientEquipmentLoading] = useState(false);
+  const [planChecking, setPlanChecking] = useState(false);
 
   const selectedClientEquipments = useMemo(() => {
     if (!form.clientId) return [];
-
-    return equipments.filter(
-      (equipment) =>
-        getEquipmentClientId(equipment) === form.clientId
-    );
+    return equipments.filter((equipment) => getEquipmentClientId(equipment) === form.clientId);
   }, [equipments, form.clientId]);
 
   const serviceValueNumber = parseMoney(form.value);
-  const materialsValueNumber = parseMoney(
-    form.materialsValue
-  );
-
-  const totalValue =
-    serviceValueNumber + materialsValueNumber;
+  const materialsValueNumber = parseMoney(form.materialsValue);
+  const totalValue = serviceValueNumber + materialsValueNumber;
 
   async function loadData() {
     setLoading(true);
 
-    const [
-      ordersResult,
-      clientsResult,
-      equipmentsResult,
-      techniciansResult,
-    ] = await Promise.all([
-      supabase
-        .from("ordens_servico")
-        .select("*")
-        .order("created_at", {
-          ascending: false,
-        }),
-
-      // IMPORTANTE:
-      // sem .eq("ativo", true), para mostrar
-      // todos os clientes cadastrados.
-      supabase
-        .from("clientes")
-        .select("id, nome, cidade")
-        .order("nome", {
-          ascending: true,
-        }),
-
-      supabase
-        .from("equipamentos")
-        .select("*")
-        .order("created_at", {
-          ascending: false,
-        }),
-
-      supabase
-        .from("tecnicos")
-        .select("id, nome")
-        .order("nome", {
-          ascending: true,
-        }),
+    const [ordersResult, clientsResult, equipmentsResult, techniciansResult] = await Promise.all([
+      supabase.from("ordens_servico").select("*").order("created_at", { ascending: false }),
+      supabase.from("clientes").select("id, nome, cidade").order("nome", { ascending: true }),
+      supabase.from("equipamentos").select("*").order("created_at", { ascending: false }),
+      supabase.from("tecnicos").select("id, nome").order("nome", { ascending: true }),
     ]);
 
-    if (ordersResult.error) {
-      console.error(
-        "Erro ao carregar ordens:",
-        ordersResult.error
-      );
-    }
-
-    if (clientsResult.error) {
-      console.error(
-        "Erro ao carregar clientes:",
-        clientsResult.error
-      );
-    }
-
-    if (equipmentsResult.error) {
-      console.error(
-        "Erro ao carregar equipamentos:",
-        equipmentsResult.error
-      );
-    }
-
-    if (techniciansResult.error) {
-      console.error(
-        "Erro ao carregar técnicos:",
-        techniciansResult.error
-      );
-    }
-
-    const loadedOrders: ServiceOrder[] = (
-      ordersResult.data ?? []
-    ).map((item: any) => ({
+    const loadedOrders: ServiceOrder[] = (ordersResult.data ?? []).map((item: any) => ({
       id: item.id,
       number: String(item.numero ?? ""),
       clientId: String(item.cliente_id ?? ""),
       client: String(item.cliente_nome ?? ""),
       equipment: String(item.equipamento ?? ""),
-      equipmentId: String(
-        item.equipamento_id ?? ""
-      ),
-      equipmentBrand: String(
-        item.equipamento_marca ?? ""
-      ),
-      equipmentModel: String(
-        item.equipamento_modelo ?? ""
-      ),
-      equipmentCapacity: String(
-        item.equipamento_capacidade ?? ""
-      ),
+      equipmentId: String(item.equipamento_id ?? ""),
+      equipmentBrand: String(item.equipamento_marca ?? ""),
+      equipmentModel: String(item.equipamento_modelo ?? ""),
+      equipmentCapacity: String(item.equipamento_capacidade ?? ""),
       city: String(item.cidade ?? ""),
-      serviceType:
-        (item.tipo_servico as ServiceType) ||
-        "Preventiva",
+      serviceType: (item.tipo_servico as ServiceType) || "Preventiva",
       description: String(item.descricao ?? ""),
       date: String(item.data ?? ""),
       technician: String(item.tecnico ?? ""),
-      technicianId: String(
-        item.tecnico_id ?? ""
-      ),
-      serviceValue: Number(
-        item.valor_servicos ??
-          item.valor ??
-          0
-      ),
-      materialsValue: Number(
-        item.valor_materiais ?? 0
-      ),
-      materialsDescription: String(
-        item.materiais_descricao ?? ""
-      ),
-      materialsPaid: Boolean(
-        item.materiais_pago ?? false
-      ),
-      materialsPaidAt:
-        item.materiais_pago_em ?? null,
-      value: Number(
-        item.valor ??
-          Number(item.valor_servicos ?? 0) +
-            Number(item.valor_materiais ?? 0)
-      ),
-      status:
-        (item.status as ServiceOrderStatus) ||
-        "Aberta",
+      technicianId: String(item.tecnico_id ?? ""),
+      serviceValue: Number(item.valor_servicos ?? item.valor ?? 0),
+      materialsValue: Number(item.valor_materiais ?? 0),
+      materialsDescription: String(item.materiais_descricao ?? ""),
+      materialsPaid: Boolean(item.materiais_pago ?? false),
+      materialsPaidAt: item.materiais_pago_em ?? null,
+      value: Number(item.valor ?? Number(item.valor_servicos ?? 0) + Number(item.valor_materiais ?? 0)),
+      status: (item.status as ServiceOrderStatus) || "Aberta",
       notes: String(item.observacoes ?? ""),
-
-      monthlyPlanId:
-        item.plano_mensal_id ?? null,
-      monthlyPlanCovered: Boolean(
-        item.plano_mensal_coberto ?? false
-      ),
-      monthlyPlanStatus: String(
-        item.plano_mensal_status ?? ""
-      ),
-      monthlyPlanWarning: String(
-        item.plano_mensal_aviso ?? ""
-      ),
-      monthlyPlanIncludedService: String(
-        item.plano_mensal_servico_incluso ?? ""
-      ),
+      monthlyPlanId: item.plano_mensal_id ?? null,
+      monthlyPlanCovered: Boolean(item.plano_mensal_coberto ?? false),
+      monthlyPlanStatus: String(item.plano_mensal_status ?? ""),
+      monthlyPlanWarning: String(item.plano_mensal_aviso ?? ""),
+      monthlyPlanIncludedService: String(item.plano_mensal_servico_incluso ?? ""),
     }));
 
-    const loadedClients: Client[] = (
-      clientsResult.data ?? []
-    ).map((item: any) => ({
+    const loadedClients: Client[] = (clientsResult.data ?? []).map((item: any) => ({
       id: item.id,
       nome: String(item.nome ?? ""),
       cidade: String(item.cidade ?? ""),
     }));
 
-    const loadedEquipments: Equipment[] = (
-      equipmentsResult.data ?? []
-    ) as Equipment[];
-
-    const loadedTechnicians: Technician[] = (
-      techniciansResult.data ?? []
-    ).map((item: any) => ({
-      id: item.id,
-      nome: String(item.nome ?? ""),
-    }));
-
     setOrders(loadedOrders);
     setClients(loadedClients);
-    setEquipments(loadedEquipments);
-    setTechnicians(loadedTechnicians);
-
+    setEquipments((equipmentsResult.data ?? []) as Equipment[]);
+    setTechnicians((techniciansResult.data ?? []).map((item: any) => ({ id: item.id, nome: String(item.nome ?? "") })));
     setLoading(false);
   }
 
@@ -869,30 +765,15 @@ export default function OrdensServicoPage() {
 
   const filteredOrders = useMemo(() => {
     const term = search.trim().toLowerCase();
-
     return orders.filter((order) => {
       const matchesSearch =
         !term ||
-        order.number
-          .toLowerCase()
-          .includes(term) ||
-        order.client
-          .toLowerCase()
-          .includes(term) ||
-        order.city
-          .toLowerCase()
-          .includes(term) ||
-        order.equipment
-          .toLowerCase()
-          .includes(term) ||
-        order.serviceType
-          .toLowerCase()
-          .includes(term);
-
-      const matchesStatus =
-        statusFilter === "Todos" ||
-        order.status === statusFilter;
-
+        order.number.toLowerCase().includes(term) ||
+        order.client.toLowerCase().includes(term) ||
+        order.city.toLowerCase().includes(term) ||
+        order.equipment.toLowerCase().includes(term) ||
+        order.serviceType.toLowerCase().includes(term);
+      const matchesStatus = statusFilter === "Todos" || order.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [orders, search, statusFilter]);
@@ -900,41 +781,21 @@ export default function OrdensServicoPage() {
   const stats = useMemo(() => {
     return {
       total: orders.length,
-
-      open: orders.filter(
-        (item) => item.status === "Aberta"
-      ).length,
-
-      scheduled: orders.filter(
-        (item) => item.status === "Agendada"
-      ).length,
-
-      progress: orders.filter(
-        (item) => item.status === "Em andamento"
-      ).length,
-
-      completed: orders.filter(
-        (item) => item.status === "Concluída"
-      ).length,
+      open: orders.filter((item) => item.status === "Aberta").length,
+      scheduled: orders.filter((item) => item.status === "Agendada").length,
+      progress: orders.filter((item) => item.status === "Em andamento").length,
+      completed: orders.filter((item) => item.status === "Concluída").length,
     };
   }, [orders]);
 
   function openNewOrder() {
     setEditingId(null);
-
-    setForm({
-      ...emptyForm,
-      date: new Date()
-        .toISOString()
-        .slice(0, 10),
-    });
-
+    setForm({ ...emptyForm, date: new Date().toISOString().slice(0, 10) });
     setShowForm(true);
   }
 
   function openEditOrder(order: ServiceOrder) {
     setEditingId(order.id);
-
     setForm({
       clientId: order.clientId,
       client: order.client,
@@ -944,37 +805,23 @@ export default function OrdensServicoPage() {
       equipmentModel: order.equipmentModel,
       equipmentCapacity: order.equipmentCapacity,
       city: order.city,
-
       serviceType: order.serviceType,
       description: order.description,
       date: order.date,
-
       technicianId: order.technicianId,
       technician: order.technician,
-
       value: String(order.serviceValue),
-      materialsValue: String(
-        order.materialsValue
-      ),
-      materialsDescription:
-        order.materialsDescription,
+      materialsValue: String(order.materialsValue),
+      materialsDescription: order.materialsDescription,
       materialsPaid: order.materialsPaid,
-
       status: order.status,
       notes: order.notes,
-
-      monthlyPlanId:
-        order.monthlyPlanId,
-      monthlyPlanCovered:
-        order.monthlyPlanCovered,
-      monthlyPlanStatus:
-        order.monthlyPlanStatus,
-      monthlyPlanWarning:
-        order.monthlyPlanWarning,
-      monthlyPlanIncludedService:
-        order.monthlyPlanIncludedService,
+      monthlyPlanId: order.monthlyPlanId,
+      monthlyPlanCovered: order.monthlyPlanCovered,
+      monthlyPlanStatus: order.monthlyPlanStatus,
+      monthlyPlanWarning: order.monthlyPlanWarning,
+      monthlyPlanIncludedService: order.monthlyPlanIncludedService,
     });
-
     setShowForm(true);
   }
 
@@ -984,13 +831,8 @@ export default function OrdensServicoPage() {
     setForm(emptyForm);
   }
 
-  async function handleClientChange(
-    clientId: string
-  ) {
-    const client = clients.find(
-      (item) => item.id === clientId
-    );
-
+  async function handleClientChange(clientId: string) {
+    const client = clients.find((item) => item.id === clientId);
     if (!client) {
       setForm((old) => ({
         ...old,
@@ -1008,7 +850,6 @@ export default function OrdensServicoPage() {
         monthlyPlanWarning: "",
         monthlyPlanIncludedService: "",
       }));
-
       return;
     }
 
@@ -1017,13 +858,11 @@ export default function OrdensServicoPage() {
       clientId: client.id,
       client: client.nome,
       city: client.cidade ?? "",
-
       equipmentId: "",
       equipment: "",
       equipmentBrand: "",
       equipmentModel: "",
       equipmentCapacity: "",
-
       monthlyPlanId: null,
       monthlyPlanCovered: false,
       monthlyPlanStatus: "",
@@ -1032,53 +871,19 @@ export default function OrdensServicoPage() {
     }));
 
     setClientEquipmentLoading(true);
-
     try {
-      // Busca novamente diretamente no Supabase.
-      // Assim mesmo equipamentos cadastrados depois
-      // da abertura da página aparecem.
-      const { data, error } = await supabase
-        .from("equipamentos")
-        .select("*");
-
-      if (error) {
-        console.error(
-          "Erro ao buscar equipamentos do cliente:",
-          error
-        );
-
-        setClientEquipmentLoading(false);
-        return;
-      }
-
-      setEquipments(
-        (data ?? []) as Equipment[]
-      );
+      const { data } = await supabase.from("equipamentos").select("*");
+      setEquipments((data ?? []) as Equipment[]);
     } catch (error) {
-      console.error(
-        "Erro inesperado ao buscar equipamentos:",
-        error
-      );
+      console.error(error);
     }
-
     setClientEquipmentLoading(false);
 
-    // Verificação inicial do plano mensal.
-    await checkPlanForCurrentService(
-      client.id,
-      form.serviceType,
-      parseMoney(form.value)
-    );
+    await checkPlanForCurrentService(client.id, form.serviceType, parseMoney(form.value));
   }
 
-  function handleEquipmentChange(
-    equipmentId: string
-  ) {
-    const equipment =
-      equipments.find(
-        (item) => item.id === equipmentId
-      );
-
+  function handleEquipmentChange(equipmentId: string) {
+    const equipment = equipments.find((item) => item.id === equipmentId);
     if (!equipment) {
       setForm((old) => ({
         ...old,
@@ -1088,7 +893,6 @@ export default function OrdensServicoPage() {
         equipmentModel: "",
         equipmentCapacity: "",
       }));
-
       return;
     }
 
@@ -1096,90 +900,46 @@ export default function OrdensServicoPage() {
       ...old,
       equipmentId: equipment.id,
       equipment: getEquipmentName(equipment),
-      equipmentBrand:
-        getEquipmentBrand(equipment),
-      equipmentModel:
-        getEquipmentModel(equipment),
-      equipmentCapacity:
-        getEquipmentCapacity(equipment),
+      equipmentBrand: getEquipmentBrand(equipment),
+      equipmentModel: getEquipmentModel(equipment),
+      equipmentCapacity: getEquipmentCapacity(equipment),
     }));
   }
 
-  async function checkPlanForCurrentService(
-    clientId: string,
-    service: string,
-    normalValue: number
-  ) {
+  async function checkPlanForCurrentService(clientId: string, service: string, normalValue: number) {
     if (!clientId) return;
-
     setPlanChecking(true);
-
     try {
-      const result =
-        await applyMonthlyPlanToServiceOrder({
-          clientId,
-          service,
-          normalServiceValue: normalValue,
-        });
+      const result = await applyMonthlyPlanToServiceOrder({
+        clientId,
+        service,
+        normalServiceValue: normalValue,
+      });
 
       setForm((old) => ({
         ...old,
-        monthlyPlanId:
-          result.plano_mensal_id,
-        monthlyPlanCovered:
-          result.plano_mensal_coberto,
-        monthlyPlanStatus:
-          result.plano_mensal_status,
-        monthlyPlanWarning:
-          result.plano_mensal_aviso,
-        monthlyPlanIncludedService:
-          result.plano_mensal_servico_incluso,
-
-        value: String(
-          result.valor_servicos
-        ),
+        monthlyPlanId: result.plano_mensal_id,
+        monthlyPlanCovered: result.plano_mensal_coberto,
+        monthlyPlanStatus: result.plano_mensal_status,
+        monthlyPlanWarning: result.plano_mensal_aviso,
+        monthlyPlanIncludedService: result.plano_mensal_servico_incluso,
+        value: String(result.valor_servicos),
       }));
     } catch (error) {
-      console.error(
-        "Erro ao verificar plano mensal:",
-        error
-      );
+      console.error(error);
     }
-
     setPlanChecking(false);
   }
 
-  async function handleServiceChange(
-    service: ServiceType
-  ) {
-    setForm((old) => ({
-      ...old,
-      serviceType: service,
-    }));
-
+  async function handleServiceChange(service: ServiceType) {
+    setForm((old) => ({ ...old, serviceType: service }));
     if (!form.clientId) return;
-
-    await checkPlanForCurrentService(
-      form.clientId,
-      service,
-      parseMoney(form.value)
-    );
+    await checkPlanForCurrentService(form.clientId, service, parseMoney(form.value));
   }
 
-  function handleTechnicianChange(
-    technicianId: string
-  ) {
-    const technician =
-      technicians.find(
-        (item) => item.id === technicianId
-      );
-
-    setForm((old) => ({
-      ...old,
-      technicianId,
-      technician:
-        technician?.nome ?? "",
-    }));
+  function handleTechnicianChange(technicianId: string) {
+    const technician = technicians.find((item) => item.id === technicianId);
+    setForm((old) => ({ ...old, technicianId, technician: technician?.nome ?? "" }));
   }
 
   async function saveOrder() {
@@ -1187,393 +947,187 @@ export default function OrdensServicoPage() {
       alert("Selecione um cliente.");
       return;
     }
-
     if (!form.serviceType) {
       alert("Selecione o tipo de serviço.");
       return;
     }
-
     if (!form.date) {
       alert("Informe a data da ordem de serviço.");
       return;
     }
 
     setSaving(true);
-
     try {
-      const serviceValue = parseMoney(
-        form.value
-      );
+      const serviceValue = parseMoney(form.value);
+      const materialsValue = parseMoney(form.materialsValue);
 
-      const materialsValue = parseMoney(
-        form.materialsValue
-      );
+      const monthlyPlanData = await applyMonthlyPlanToServiceOrder({
+        clientId: form.clientId,
+        service: form.serviceType,
+        normalServiceValue: serviceValue,
+      });
 
-      // Antes de salvar, fazemos novamente a
-      // verificação automática do plano.
-      const monthlyPlanData =
-        await applyMonthlyPlanToServiceOrder({
-          clientId: form.clientId,
-          service: form.serviceType,
-          normalServiceValue: serviceValue,
-        });
-
-      const finalServiceValue =
-        monthlyPlanData.valor_servicos;
-
-      const finalTotal =
-        finalServiceValue +
-        materialsValue;
+      const finalServiceValue = monthlyPlanData.valor_servicos;
+      const finalTotal = finalServiceValue + materialsValue;
 
       const commonData = {
         cliente_id: form.clientId,
         cliente_nome: form.client,
         cidade: form.city,
-
-        equipamento:
-          form.equipment ||
-          "Não informado",
-
-        equipamento_id:
-          form.equipmentId || null,
-
-        equipamento_marca:
-          form.equipmentBrand || null,
-
-        equipamento_modelo:
-          form.equipmentModel || null,
-
-        equipamento_capacidade:
-          form.equipmentCapacity || null,
-
-        tipo_servico:
-          form.serviceType,
-
-        descricao:
-          form.description || null,
-
+        equipamento: form.equipment || "Não informado",
+        equipamento_id: form.equipmentId || null,
+        equipamento_marca: form.equipmentBrand || null,
+        equipamento_modelo: form.equipmentModel || null,
+        equipamento_capacidade: form.equipmentCapacity || null,
+        tipo_servico: form.serviceType,
+        descricao: form.description || null,
         data: form.date,
-
-        tecnico:
-          form.technician || null,
-
-        tecnico_id:
-          form.technicianId || null,
-
-        valor_servicos:
-          finalServiceValue,
-
-        valor_materiais:
-          materialsValue,
-
-        materiais_descricao:
-          form.materialsDescription ||
-          null,
-
+        tecnico: form.technician || null,
+        tecnico_id: form.technicianId || null,
+        valor_servicos: finalServiceValue,
+        valor_materiais: materialsValue,
+        materiais_descricao: form.materialsDescription || null,
         valor: finalTotal,
-
         status: form.status,
-
-        observacoes:
-          form.notes || null,
-
-        plano_mensal_id:
-          monthlyPlanData.plano_mensal_id,
-
-        plano_mensal_coberto:
-          monthlyPlanData.plano_mensal_coberto,
-
-        plano_mensal_status:
-          monthlyPlanData.plano_mensal_status,
-
-        plano_mensal_aviso:
-          monthlyPlanData.plano_mensal_aviso,
-
-        plano_mensal_servico_incluso:
-          monthlyPlanData.plano_mensal_servico_incluso,
+        observacoes: form.notes || null,
+        plano_mensal_id: monthlyPlanData.plano_mensal_id,
+        plano_mensal_coberto: monthlyPlanData.plano_mensal_coberto,
+        plano_mensal_status: monthlyPlanData.plano_mensal_status,
+        plano_mensal_aviso: monthlyPlanData.plano_mensal_aviso,
+        plano_mensal_servico_incluso: monthlyPlanData.plano_mensal_servico_incluso,
       };
 
       let savedOrder: any = null;
 
       if (editingId) {
-        const existingOrder =
-          orders.find(
-            (item) =>
-              item.id === editingId
-          );
+        const existingOrder = orders.find((item) => item.id === editingId);
+        const { data, error } = await supabase
+          .from("ordens_servico")
+          .update({
+            ...commonData,
+            materiais_pago: existingOrder?.materialsPaid ?? form.materialsPaid ?? false,
+            materiais_pago_em: existingOrder?.materialsPaidAt ?? null,
+          })
+          .eq("id", editingId)
+          .select()
+          .single();
 
-        const { data, error } =
-          await supabase
-            .from("ordens_servico")
-            .update({
-              ...commonData,
-
-              materiais_pago:
-                existingOrder?.materialsPaid ??
-                form.materialsPaid ??
-                false,
-
-              materiais_pago_em:
-                existingOrder?.materialsPaidAt ??
-                null,
-            })
-            .eq("id", editingId)
-            .select()
-            .single();
-
-        if (error) {
-          throw error;
-        }
-
+        if (error) throw error;
         savedOrder = data;
       } else {
-        const number =
-          `OS-${String(
-            Date.now()
-          ).slice(-6)}`;
+        const number = `OS-${String(Date.now()).slice(-6)}`;
+        const { data, error } = await supabase
+          .from("ordens_servico")
+          .insert({
+            ...commonData,
+            numero: number,
+            materiais_pago: false,
+            materiais_pago_em: null,
+          })
+          .select()
+          .single();
 
-        const { data, error } =
-          await supabase
-            .from("ordens_servico")
-            .insert({
-              ...commonData,
-
-              numero: number,
-
-              materiais_pago:
-                false,
-
-              materiais_pago_em:
-                null,
-            })
-            .select()
-            .single();
-
-        if (error) {
-          throw error;
-        }
-
+        if (error) throw error;
         savedOrder = data;
       }
 
-      // Registra o uso do plano quando a OS
-      // estiver vinculada a um plano mensal.
-      if (
-        savedOrder?.id &&
-        monthlyPlanData.plano_mensal_id
-      ) {
+      if (savedOrder?.id && monthlyPlanData.plano_mensal_id) {
         try {
           await registerPlanUse({
-            planoId:
-              monthlyPlanData.plano_mensal_id,
-            ordemServicoId:
-              savedOrder.id,
-            clientId:
-              form.clientId,
-            service:
-              form.serviceType,
-            equipment:
-              form.equipment,
-            covered:
-              monthlyPlanData.plano_mensal_coberto,
-            reason:
-              monthlyPlanData.plano_mensal_aviso ||
-              "",
-            notes:
-              form.notes || "",
+            planoId: monthlyPlanData.plano_mensal_id,
+            ordemServicoId: savedOrder.id,
+            clientId: form.clientId,
+            service: form.serviceType,
+            equipment: form.equipment,
+            covered: monthlyPlanData.plano_mensal_coberto,
+            reason: monthlyPlanData.plano_mensal_aviso || "",
+            notes: form.notes || "",
           });
         } catch (usageError) {
-          console.error(
-            "A OS foi salva, mas não foi possível registrar o uso do plano:",
-            usageError
-          );
+          console.error(usageError);
         }
       }
 
-      alert(
-        editingId
-          ? "Ordem de serviço atualizada com sucesso."
-          : "Ordem de serviço criada com sucesso."
-      );
-
+      alert(editingId ? "Ordem de serviço atualizada com sucesso." : "Ordem de serviço criada com sucesso.");
       closeForm();
       await loadData();
     } catch (error: any) {
-      console.error(
-        "Erro ao salvar ordem de serviço:",
-        error
-      );
-
-      alert(
-        error?.message ||
-          "Não foi possível salvar a ordem de serviço."
-      );
+      alert(error?.message || "Não foi possível salvar a ordem de serviço.");
     }
-
     setSaving(false);
   }
 
-  async function deleteOrder(
-    order: ServiceOrder
-  ) {
-    const confirmed = window.confirm(
-      `Deseja excluir a ordem de serviço ${order.number}?`
-    );
-
-    if (!confirmed) return;
-
-    const { error } =
-      await supabase
-        .from("ordens_servico")
-        .delete()
-        .eq("id", order.id);
-
+  async function deleteOrder(order: ServiceOrder) {
+    if (!window.confirm(`Deseja excluir a ordem de serviço ${order.number}?`)) return;
+    const { error } = await supabase.from("ordens_servico").delete().eq("id", order.id);
     if (error) {
-      console.error(
-        "Erro ao excluir OS:",
-        error
-      );
-
-      alert(
-        "Não foi possível excluir a ordem de serviço."
-      );
-
+      alert("Não foi possível excluir a ordem de serviço.");
       return;
     }
-
-    if (
-      selectedOrder?.id === order.id
-    ) {
-      setSelectedOrder(null);
-    }
-
+    if (selectedOrder?.id === order.id) setSelectedOrder(null);
     await loadData();
   }
 
-  async function changeStatus(
-    order: ServiceOrder,
-    status: ServiceOrderStatus
-  ) {
-    const { error } =
-      await supabase
-        .from("ordens_servico")
-        .update({ status })
-        .eq("id", order.id);
-
+  async function changeStatus(order: ServiceOrder, status: ServiceOrderStatus) {
+    const { error } = await supabase.from("ordens_servico").update({ status }).eq("id", order.id);
     if (error) {
-      console.error(
-        "Erro ao alterar status:",
-        error
-      );
-
-      alert(
-        "Não foi possível alterar o status."
-      );
-
+      alert("Não foi possível alterar o status.");
       return;
     }
-
     await loadData();
-
-    setSelectedOrder((old) =>
-      old
-        ? {
-            ...old,
-            status,
-          }
-        : old
-    );
+    setSelectedOrder((old) => (old ? { ...old, status } : old));
   }
 
-  async function toggleMaterialsPayment(
-    order: ServiceOrder
-  ) {
-    const nextPaid =
-      !order.materialsPaid;
-
-    const { error } =
-      await supabase
-        .from("ordens_servico")
-        .update({
-          materiais_pago: nextPaid,
-          materiais_pago_em: nextPaid
-            ? new Date().toISOString()
-            : null,
-        })
-        .eq("id", order.id);
+  async function toggleMaterialsPayment(order: ServiceOrder) {
+    const nextPaid = !order.materialsPaid;
+    const { error } = await supabase
+      .from("ordens_servico")
+      .update({
+        materiais_pago: nextPaid,
+        materiais_pago_em: nextPaid ? new Date().toISOString() : null,
+      })
+      .eq("id", order.id);
 
     if (error) {
-      console.error(
-        "Erro ao atualizar pagamento dos materiais:",
-        error
-      );
-
-      alert(
-        "Não foi possível atualizar o pagamento dos materiais."
-      );
-
+      alert("Não foi possível atualizar o pagamento dos materiais.");
       return;
     }
 
     const updated = {
       ...order,
       materialsPaid: nextPaid,
-      materialsPaidAt: nextPaid
-        ? new Date().toISOString()
-        : null,
+      materialsPaidAt: nextPaid ? new Date().toISOString() : null,
     };
-
     setSelectedOrder(updated);
-
-    setOrders((old) =>
-      old.map((item) =>
-        item.id === order.id
-          ? updated
-          : item
-      )
-    );
+    setOrders((old) => old.map((item) => (item.id === order.id ? updated : item)));
   }
 
   function getCurrentPlanInfo() {
     return getPlanoOSInfo({
-      plano_mensal_status:
-        form.monthlyPlanStatus,
-      plano_mensal_coberto:
-        form.monthlyPlanCovered,
-      plano_mensal_aviso:
-        form.monthlyPlanWarning,
-      plano_mensal_servico_incluso:
-        form.monthlyPlanIncludedService,
+      plano_mensal_status: form.monthlyPlanStatus,
+      plano_mensal_coberto: form.monthlyPlanCovered,
+      plano_mensal_aviso: form.monthlyPlanWarning,
+      plano_mensal_servico_incluso: form.monthlyPlanIncludedService,
     });
   }
 
-  const currentPlanInfo =
-    getCurrentPlanInfo();
+  const currentPlanInfo = getCurrentPlanInfo();
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-
-        {/* CABEÇALHO */}
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-cyan-500/10 p-3">
                 <ClipboardList className="h-7 w-7 text-cyan-400" />
               </div>
-
               <div>
-                <h1 className="text-2xl font-bold sm:text-3xl">
-                  Ordens de Serviço
-                </h1>
-
-                <p className="text-sm text-slate-400">
-                  Controle completo das ordens de serviço
-                </p>
+                <h1 className="text-2xl font-bold sm:text-3xl">Ordens de Serviço</h1>
+                <p className="text-sm text-slate-400">Controle completo das ordens de serviço</p>
               </div>
             </div>
           </div>
-
           <button
             onClick={openNewOrder}
             className="flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400"
@@ -1583,1402 +1137,311 @@ export default function OrdensServicoPage() {
           </button>
         </div>
 
-        {/* CARDS */}
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">
-              Total
-            </p>
-
-            <p className="mt-2 text-2xl font-bold">
-              {stats.total}
-            </p>
+            <p className="text-sm text-slate-400">Total</p>
+            <p className="mt-2 text-2xl font-bold">{stats.total}</p>
           </div>
-
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">
-              Abertas
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-yellow-400">
-              {stats.open}
-            </p>
+            <p className="text-sm text-slate-400">Abertas</p>
+            <p className="mt-2 text-2xl font-bold text-yellow-400">{stats.open}</p>
           </div>
-
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">
-              Agendadas
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-purple-400">
-              {stats.scheduled}
-            </p>
+            <p className="text-sm text-slate-400">Agendadas</p>
+            <p className="mt-2 text-2xl font-bold text-purple-400">{stats.scheduled}</p>
           </div>
-
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">
-              Em andamento
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-blue-400">
-              {stats.progress}
-            </p>
+            <p className="text-sm text-slate-400">Em andamento</p>
+            <p className="mt-2 text-2xl font-bold text-blue-400">{stats.progress}</p>
           </div>
-
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-400">
-              Concluídas
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-emerald-400">
-              {stats.completed}
-            </p>
+            <p className="text-sm text-slate-400">Concluídas</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-400">{stats.completed}</p>
           </div>
         </div>
 
-        {/* FILTROS */}
         <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-4">
           <div className="flex flex-col gap-3 lg:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-
               <input
                 value={search}
-                onChange={(event) =>
-                  setSearch(event.target.value)
-                }
+                onChange={(event) => setSearch(event.target.value)}
                 placeholder="Pesquisar OS, cliente, cidade ou equipamento..."
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-10 pr-4 text-sm outline-none focus:border-cyan-500"
               />
             </div>
-
             <select
               value={statusFilter}
-              onChange={(event) =>
-                setStatusFilter(
-                  event.target
-                    .value as
-                    | "Todos"
-                    | ServiceOrderStatus
-                )
-              }
+              onChange={(event) => setStatusFilter(event.target.value as "Todos" | ServiceOrderStatus)}
               className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm outline-none focus:border-cyan-500"
             >
-              <option value="Todos">
-                Todos os status
-              </option>
-
-              <option value="Aberta">
-                Abertas
-              </option>
-
-              <option value="Agendada">
-                Agendadas
-              </option>
-
-              <option value="Em andamento">
-                Em andamento
-              </option>
-
-              <option value="Concluída">
-                Concluídas
-              </option>
-
-              <option value="Cancelada">
-                Canceladas
-              </option>
+              <option value="Todos">Todos os status</option>
+              <option value="Aberta">Abertas</option>
+              <option value="Agendada">Agendadas</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluída">Concluídas</option>
+              <option value="Cancelada">Canceladas</option>
             </select>
           </div>
         </div>
 
-        {/* LISTA */}
         <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
           <div className="border-b border-slate-800 px-5 py-4">
-            <h2 className="font-semibold">
-              Ordens de Serviço
-            </h2>
-
-            <p className="text-xs text-slate-500">
-              {filteredOrders.length} ordem(ns) encontrada(s)
-            </p>
+            <h2 className="font-semibold">Ordens de Serviço</h2>
+            <p className="text-xs text-slate-500">{filteredOrders.length} ordem(ns) encontrada(s)</p>
           </div>
 
           {loading ? (
-            <div className="p-10 text-center text-slate-400">
-              Carregando ordens de serviço...
-            </div>
+            <div className="p-10 text-center text-slate-400">Carregando ordens de serviço...</div>
           ) : filteredOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
               <ClipboardList className="mb-4 h-12 w-12 text-slate-700" />
-
-              <h3 className="font-semibold">
-                Nenhuma ordem encontrada
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Crie uma nova ordem de serviço para começar.
-              </p>
+              <h3 className="font-semibold">Nenhuma ordem encontrada</h3>
+              <p className="mt-1 text-sm text-slate-500">Crie uma nova ordem de serviço para começar.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-800">
-              {filteredOrders.map(
-                (order) => {
-                  const planInfo =
-                    getPlanoOSInfo({
-                      plano_mensal_status:
-                        order.monthlyPlanStatus,
-                      plano_mensal_coberto:
-                        order.monthlyPlanCovered,
-                      plano_mensal_aviso:
-                        order.monthlyPlanWarning,
-                      plano_mensal_servico_incluso:
-                        order.monthlyPlanIncludedService,
-                    });
+              {filteredOrders.map((order) => {
+                const planInfo = getPlanoOSInfo({
+                  plano_mensal_status: order.monthlyPlanStatus,
+                  plano_mensal_coberto: order.monthlyPlanCovered,
+                  plano_mensal_aviso: order.monthlyPlanWarning,
+                  plano_mensal_servico_incluso: order.monthlyPlanIncludedService,
+                });
 
-                  return (
-                    <div
-                      key={order.id}
-                      className="p-5 transition hover:bg-slate-800/30"
-                    >
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-bold">
-                              {order.number}
-                            </h3>
-
-                            <span
-                              className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${statusClass(
-                                order.status
-                              )}`}
-                            >
-                              {order.status}
+                return (
+                  <div key={order.id} className="p-5 transition hover:bg-slate-800/30">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-bold">{order.number}</h3>
+                          <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${statusClass(order.status)}`}>
+                            {order.status}
+                          </span>
+                          {order.monthlyPlanId && (
+                            <span className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${getPlanoOSBadgeClass(planInfo.status, planInfo.coberto)}`}>
+                              {planInfo.coberto ? "Plano: Coberto" : `Plano: ${planInfo.status}`}
                             </span>
-
-                            {order.monthlyPlanId && (
-                              <span
-                                className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${getPlanoOSBadgeClass(
-                                  planInfo.status,
-                                  planInfo.coberto
-                                )}`}
-                              >
-                                {planInfo.coberto
-                                  ? "Plano: Coberto"
-                                  : `Plano: ${planInfo.status}`}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="mt-3 grid gap-2 text-sm text-slate-400 sm:grid-cols-2 lg:grid-cols-4">
-                            <span className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-cyan-400" />
-                              {order.client}
-                            </span>
-
-                            <span className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-cyan-400" />
-                              {order.city || "-"}
-                            </span>
-
-                            <span className="flex items-center gap-2">
-                              <Wrench className="h-4 w-4 text-cyan-400" />
-                              {order.equipment || "-"}
-                            </span>
-
-                            <span className="flex items-center gap-2">
-                              <CalendarDays className="h-4 w-4 text-cyan-400" />
-                              {formatDate(order.date)}
-                            </span>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                            <span>
-                              Serviço:{" "}
-                              <strong>
-                                {formatCurrency(
-                                  order.serviceValue
-                                )}
-                              </strong>
-                            </span>
-
-                            <span>
-                              Materiais:{" "}
-                              <strong>
-                                {formatCurrency(
-                                  order.materialsValue
-                                )}
-                              </strong>
-                            </span>
-
-                            <span>
-                              Total:{" "}
-                              <strong className="text-cyan-400">
-                                {formatCurrency(
-                                  order.value
-                                )}
-                              </strong>
-                            </span>
-
-                            <span
-                              className={
-                                order.materialsPaid
-                                  ? "text-emerald-400"
-                                  : "text-yellow-400"
-                              }
-                            >
-                              Materiais:{" "}
-                              {order.materialsPaid
-                                ? "Pago"
-                                : "Pendente"}
-                            </span>
-                          </div>
-
-                          {order.monthlyPlanWarning && (
-                            <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-300">
-                              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-
-                              <span>
-                                {order.monthlyPlanWarning}
-                              </span>
-                            </div>
                           )}
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() =>
-                              setSelectedOrder(
-                                order
-                              )
-                            }
-                            className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"
-                          >
-                            Ver
-                          </button>
+                        <div className="mt-3 grid gap-2 text-sm text-slate-400 sm:grid-cols-2 lg:grid-cols-4">
+                          <span className="flex items-center gap-2"><User className="h-4 w-4 text-cyan-400" />{order.client}</span>
+                          <span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-cyan-400" />{order.city || "-"}</span>
+                          <span className="flex items-center gap-2"><Wrench className="h-4 w-4 text-cyan-400" />{order.equipment || "-"}</span>
+                          <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-cyan-400" />{formatDate(order.date)}</span>
+                        </div>
 
-                          <button
-                            onClick={() =>
-                              openEditOrder(
-                                order
-                              )
-                            }
-                            className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"
-                          >
-                            <Edit className="h-4 w-4" />
-                            Editar
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              printServiceOrder(
-                                order
-                              )
-                            }
-                            className="rounded-lg border border-slate-700 p-2 hover:bg-slate-800"
-                            title="Imprimir"
-                          >
-                            <Printer className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              sendServiceOrderWhatsApp(
-                                order
-                              )
-                            }
-                            className="rounded-lg border border-emerald-500/20 p-2 text-emerald-400 hover:bg-emerald-500/10"
-                            title="WhatsApp"
-                          >
-                            <MessageCircle className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              deleteOrder(
-                                order
-                              )
-                            }
-                            className="rounded-lg border border-red-500/20 p-2 text-red-400 hover:bg-red-500/10"
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                        <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                          <span>Serviço: <strong>{formatCurrency(order.serviceValue)}</strong></span>
+                          <span>Materiais: <strong>{formatCurrency(order.materialsValue)}</strong></span>
+                          <span>Total: <strong className="text-cyan-400">{formatCurrency(order.value)}</strong></span>
+                          <span className={order.materialsPaid ? "text-emerald-400" : "text-yellow-400"}>
+                            Materiais: {order.materialsPaid ? "Pago" : "Pendente"}
+                          </span>
                         </div>
                       </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button onClick={() => setSelectedOrder(order)} className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800">Ver</button>
+                        <button onClick={() => openEditOrder(order)} className="flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800"><Edit className="h-4 w-4" />Editar</button>
+                        <button onClick={() => printServiceOrder(order)} className="rounded-lg border border-slate-700 p-2 hover:bg-slate-800" title="Imprimir"><Printer className="h-4 w-4" /></button>
+                        <button onClick={() => sendServiceOrderWhatsApp(order)} className="rounded-lg border border-emerald-500/20 p-2 text-emerald-400 hover:bg-emerald-500/10" title="WhatsApp"><MessageCircle className="h-4 w-4" /></button>
+                        <button onClick={() => deleteOrder(order)} className="rounded-lg border border-red-500/20 p-2 text-red-400 hover:bg-red-500/10" title="Excluir"><Trash2 className="h-4 w-4" /></button>
+                      </div>
                     </div>
-                  );
-                }
-              )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       </div>
 
-      {/* MODAL NOVA / EDITAR OS */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm">
           <div className="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
-
             <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4">
               <div>
-                <h2 className="text-lg font-bold">
-                  {editingId
-                    ? "Editar Ordem de Serviço"
-                    : "Nova Ordem de Serviço"}
-                </h2>
-
-                <p className="text-xs text-slate-500">
-                  Cliente, equipamento, plano, serviço e materiais
-                </p>
+                <h2 className="text-lg font-bold">{editingId ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}</h2>
+                <p className="text-xs text-slate-500">Cliente, equipamento, plano, serviço e materiais</p>
               </div>
-
-              <button
-                onClick={closeForm}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <button onClick={closeForm} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"><X className="h-5 w-5" /></button>
             </div>
 
             <div className="space-y-6 p-5">
-
-              {/* CLIENTE */}
               <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
                 <div className="mb-4 flex items-center gap-2">
                   <User className="h-5 w-5 text-cyan-400" />
-
-                  <div>
-                    <h3 className="font-semibold">
-                      Cliente
-                    </h3>
-
-                    <p className="text-xs text-slate-500">
-                      Selecione o cliente cadastrado
-                    </p>
-                  </div>
+                  <div><h3 className="font-semibold">Cliente</h3><p className="text-xs text-slate-500">Selecione o cliente cadastrado</p></div>
                 </div>
-
                 <select
                   value={form.clientId}
-                  onChange={(event) =>
-                    handleClientChange(
-                      event.target.value
-                    )
-                  }
+                  onChange={(event) => handleClientChange(event.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                 >
-                  <option value="">
-                    Selecione o cliente...
-                  </option>
-
-                  {clients.map(
-                    (client) => (
-                      <option
-                        key={client.id}
-                        value={client.id}
-                      >
-                        {client.nome}
-                        {client.cidade
-                          ? ` — ${client.cidade}`
-                          : ""}
-                      </option>
-                    )
-                  )}
+                  <option value="">Selecione o cliente...</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>{client.nome}{client.cidade ? ` — ${client.cidade}` : ""}</option>
+                  ))}
                 </select>
-
-                {form.clientId && (
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl bg-slate-900 p-3">
-                      <p className="text-xs text-slate-500">
-                        Cliente
-                      </p>
-
-                      <p className="mt-1 font-semibold">
-                        {form.client}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-900 p-3">
-                      <p className="text-xs text-slate-500">
-                        Cidade
-                      </p>
-
-                      <p className="mt-1 font-semibold">
-                        {form.city ||
-                          "Não informada"}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </section>
 
-              {/* EQUIPAMENTO */}
               <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
                 <div className="mb-4 flex items-center gap-2">
                   <Wrench className="h-5 w-5 text-cyan-400" />
-
-                  <div>
-                    <h3 className="font-semibold">
-                      Equipamento
-                    </h3>
-
-                    <p className="text-xs text-slate-500">
-                      Equipamentos cadastrados para este cliente
-                    </p>
-                  </div>
+                  <div><h3 className="font-semibold">Equipamento</h3><p className="text-xs text-slate-500">Equipamentos cadastrados para este cliente</p></div>
                 </div>
-
                 {!form.clientId ? (
-                  <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">
-                    Primeiro selecione um cliente.
-                  </div>
+                  <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">Primeiro selecione um cliente.</div>
                 ) : clientEquipmentLoading ? (
-                  <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4 text-sm text-cyan-300">
-                    Buscando equipamentos do cliente...
-                  </div>
-                ) : selectedClientEquipments.length ===
-                  0 ? (
-                  <div className="rounded-xl border border-dashed border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">
-                    Nenhum equipamento cadastrado foi encontrado para este cliente.
-                  </div>
+                  <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4 text-sm text-cyan-300">Buscando equipamentos...</div>
+                ) : selectedClientEquipments.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">Nenhum equipamento encontrado.</div>
                 ) : (
-                  <>
-                    <select
-                      value={
-                        form.equipmentId
-                      }
-                      onChange={(event) =>
-                        handleEquipmentChange(
-                          event.target.value
-                        )
-                      }
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
-                    >
-                      <option value="">
-                        Selecione o equipamento...
-                      </option>
-
-                      {selectedClientEquipments.map(
-                        (equipment) => (
-                          <option
-                            key={equipment.id}
-                            value={equipment.id}
-                          >
-                            {getEquipmentName(
-                              equipment
-                            )}
-
-                            {getEquipmentBrand(
-                              equipment
-                            )
-                              ? ` — ${getEquipmentBrand(
-                                  equipment
-                                )}`
-                              : ""}
-
-                            {getEquipmentCapacity(
-                              equipment
-                            )
-                              ? ` — ${getEquipmentCapacity(
-                                  equipment
-                                )}`
-                              : ""}
-                          </option>
-                        )
-                      )}
-                    </select>
-
-                    {form.equipmentId && (
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-xl bg-slate-900 p-3">
-                          <p className="text-xs text-slate-500">
-                            Equipamento
-                          </p>
-
-                          <p className="mt-1 font-semibold">
-                            {form.equipment}
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl bg-slate-900 p-3">
-                          <p className="text-xs text-slate-500">
-                            Marca
-                          </p>
-
-                          <p className="mt-1 font-semibold">
-                            {form.equipmentBrand ||
-                              "Não informada"}
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl bg-slate-900 p-3">
-                          <p className="text-xs text-slate-500">
-                            Modelo
-                          </p>
-
-                          <p className="mt-1 font-semibold">
-                            {form.equipmentModel ||
-                              "Não informado"}
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl bg-slate-900 p-3">
-                          <p className="text-xs text-slate-500">
-                            Capacidade
-                          </p>
-
-                          <p className="mt-1 font-semibold">
-                            {form.equipmentCapacity ||
-                              "Não informada"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                  <select
+                    value={form.equipmentId}
+                    onChange={(event) => handleEquipmentChange(event.target.value)}
+                    className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
+                  >
+                    <option value="">Selecione o equipamento...</option>
+                    {selectedClientEquipments.map((equipment) => (
+                      <option key={equipment.id} value={equipment.id}>{getEquipmentName(equipment)}</option>
+                    ))}
+                  </select>
                 )}
               </section>
 
-              {/* SERVIÇO */}
               <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-cyan-400" />
-
-                  <h3 className="font-semibold">
-                    Serviço
-                  </h3>
-                </div>
-
+                <div className="mb-4 flex items-center gap-2"><ClipboardList className="h-5 w-5 text-cyan-400" /><h3 className="font-semibold">Serviço</h3></div>
                 <div className="grid gap-4 md:grid-cols-2">
-
                   <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Tipo de serviço
-                    </label>
-
+                    <label className="mb-2 block text-sm text-slate-400">Tipo de serviço</label>
                     <select
-                      value={
-                        form.serviceType
-                      }
-                      onChange={(event) =>
-                        handleServiceChange(
-                          event.target
-                            .value as ServiceType
-                        )
-                      }
+                      value={form.serviceType}
+                      onChange={(event) => handleServiceChange(event.target.value as ServiceType)}
                       className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                     >
-                      <option value="Preventiva">
-                        Preventiva
-                      </option>
-
-                      <option value="Corretiva">
-                        Corretiva
-                      </option>
-
-                      <option value="Instalação">
-                        Instalação
-                      </option>
-
-                      <option value="Higienização">
-                        Higienização
-                      </option>
-
-                      <option value="Visita técnica">
-                        Visita técnica
-                      </option>
+                      <option value="Preventiva">Preventiva</option>
+                      <option value="Corretiva">Corretiva</option>
+                      <option value="Instalação">Instalação</option>
+                      <option value="Higienização">Higienização</option>
+                      <option value="Visita técnica">Visita técnica</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Data
-                    </label>
-
+                    <label className="mb-2 block text-sm text-slate-400">Data</label>
                     <input
                       type="date"
                       value={form.date}
-                      onChange={(event) =>
-                        setForm((old) => ({
-                          ...old,
-                          date: event.target
-                            .value,
-                        }))
-                      }
+                      onChange={(event) => setForm((old) => ({ ...old, date: event.target.value }))}
                       className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                     />
                   </div>
-
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Descrição do serviço
-                    </label>
-
+                    <label className="mb-2 block text-sm text-slate-400">Descrição do serviço</label>
                     <textarea
-                      value={
-                        form.description
-                      }
-                      onChange={(event) =>
-                        setForm((old) => ({
-                          ...old,
-                          description:
-                            event.target
-                              .value,
-                        }))
-                      }
+                      value={form.description}
+                      onChange={(event) => setForm((old) => ({ ...old, description: event.target.value }))}
                       rows={4}
-                      placeholder="Descreva o serviço que será realizado..."
+                      placeholder="Descreva o serviço..."
                       className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                     />
                   </div>
                 </div>
               </section>
 
-              {/* PLANO MENSAL */}
               <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-cyan-400" />
-
-                    <div>
-                      <h3 className="font-semibold">
-                        Plano Mensal
-                      </h3>
-
-                      <p className="text-xs text-slate-500">
-                        Verificação automática de cobertura
-                      </p>
-                    </div>
-                  </div>
-
-                  {planChecking && (
-                    <span className="text-xs text-cyan-400">
-                      Verificando...
-                    </span>
-                  )}
-                </div>
-
-                {!form.clientId ? (
-                  <div className="rounded-xl border border-dashed border-slate-700 p-4 text-sm text-slate-500">
-                    Selecione um cliente para verificar o plano mensal.
-                  </div>
-                ) : !form.monthlyPlanId ? (
-                  <div className="rounded-xl border border-slate-700 bg-slate-900 p-4 text-sm text-slate-400">
-                    Este cliente não possui plano mensal ativo.
-                    <br />
-                    O serviço será cobrado normalmente.
-                  </div>
-                ) : (
-                  <div
-                    className={`rounded-xl border p-4 ${
-                      currentPlanInfo.coberto
-                        ? "border-emerald-500/30 bg-emerald-500/5"
-                        : currentPlanInfo.status ===
-                          "Em atraso"
-                        ? "border-red-500/30 bg-red-500/5"
-                        : "border-yellow-500/30 bg-yellow-500/5"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {currentPlanInfo.coberto ? (
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-                      ) : (
-                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-400" />
-                      )}
-
-                      <div>
-                        <p className="font-semibold">
-                          {currentPlanInfo.coberto
-                            ? "Serviço coberto pelo plano mensal"
-                            : currentPlanInfo.status}
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-300">
-                          {currentPlanInfo.descricao}
-                        </p>
-
-                        {currentPlanInfo.aviso && (
-                          <p className="mt-2 text-sm font-semibold text-red-400">
-                            {currentPlanInfo.aviso}
-                          </p>
-                        )}
-
-                        {currentPlanInfo.servico && (
-                          <p className="mt-2 text-xs text-slate-400">
-                            Serviço incluso:{" "}
-                            <strong>
-                              {currentPlanInfo.servico}
-                            </strong>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {/* TÉCNICO */}
-              <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <Wrench className="h-5 w-5 text-cyan-400" />
-
-                  <h3 className="font-semibold">
-                    Técnico
-                  </h3>
-                </div>
-
+                <div className="mb-4 flex items-center gap-2"><Wrench className="h-5 w-5 text-cyan-400" /><h3 className="font-semibold">Técnico</h3></div>
                 <select
-                  value={
-                    form.technicianId
-                  }
-                  onChange={(event) =>
-                    handleTechnicianChange(
-                      event.target.value
-                    )
-                  }
+                  value={form.technicianId}
+                  onChange={(event) => handleTechnicianChange(event.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                 >
-                  <option value="">
-                    Selecione o técnico...
-                  </option>
-
-                  {technicians.map(
-                    (technician) => (
-                      <option
-                        key={technician.id}
-                        value={technician.id}
-                      >
-                        {technician.nome}
-                      </option>
-                    )
-                  )}
+                  <option value="">Selecione o técnico...</option>
+                  {technicians.map((technician) => (
+                    <option key={technician.id} value={technician.id}>{technician.nome}</option>
+                  ))}
                 </select>
-
-                {technicians.length === 0 && (
-                  <p className="mt-2 text-xs text-yellow-400">
-                    Nenhum técnico cadastrado foi encontrado.
-                  </p>
-                )}
               </section>
 
-              {/* VALORES */}
               <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                <div className="mb-4 flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-cyan-400" />
-
-                  <h3 className="font-semibold">
-                    Valores
-                  </h3>
-                </div>
-
+                <div className="mb-4 flex items-center gap-2"><CreditCard className="h-5 w-5 text-cyan-400" /><h3 className="font-semibold">Valores</h3></div>
                 <div className="grid gap-4 md:grid-cols-3">
-
                   <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Valor do serviço
-                    </label>
-
+                    <label className="mb-2 block text-sm text-slate-400">Valor do serviço</label>
                     <input
-                      value={
-                        form.value
-                      }
-                      onChange={(event) =>
-                        setForm((old) => ({
-                          ...old,
-                          value:
-                            event.target
-                              .value,
-                        }))
-                      }
-                      inputMode="decimal"
-                      placeholder="0,00"
-                      disabled={
-                        form.monthlyPlanCovered
-                      }
-                      className={`w-full rounded-xl border px-4 py-3 text-sm outline-none ${
-                        form.monthlyPlanCovered
-                          ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-300"
-                          : "border-slate-700 bg-slate-900 focus:border-cyan-500"
-                      }`}
-                    />
-
-                    {form.monthlyPlanCovered && (
-                      <p className="mt-2 text-xs text-emerald-400">
-                        Serviço zerado automaticamente pelo plano.
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Materiais
-                    </label>
-
-                    <input
-                      value={
-                        form.materialsValue
-                      }
-                      onChange={(event) =>
-                        setForm((old) => ({
-                          ...old,
-                          materialsValue:
-                            event.target
-                              .value,
-                        }))
-                      }
-                      inputMode="decimal"
+                      value={form.value}
+                      onChange={(event) => setForm((old) => ({ ...old, value: event.target.value }))}
                       placeholder="0,00"
                       className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                     />
                   </div>
-
                   <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Total
-                    </label>
-
+                    <label className="mb-2 block text-sm text-slate-400">Materiais</label>
+                    <input
+                      value={form.materialsValue}
+                      onChange={(event) => setForm((old) => ({ ...old, materialsValue: event.target.value }))}
+                      placeholder="0,00"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm text-slate-400">Total</label>
                     <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 px-4 py-3 text-lg font-bold text-cyan-400">
-                      {formatCurrency(
-                        totalValue
-                      )}
+                      {formatCurrency(totalValue)}
                     </div>
                   </div>
                 </div>
-
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm text-slate-400">
-                    Descrição dos materiais
-                  </label>
-
+                  <label className="mb-2 block text-sm text-slate-400">Descrição dos materiais</label>
                   <textarea
-                    value={
-                      form.materialsDescription
-                    }
-                    onChange={(event) =>
-                      setForm((old) => ({
-                        ...old,
-                        materialsDescription:
-                          event.target
-                            .value,
-                      }))
-                    }
+                    value={form.materialsDescription}
+                    onChange={(event) => setForm((old) => ({ ...old, materialsDescription: event.target.value }))}
                     rows={3}
-                    placeholder="Ex.: capacitor, tubo, cabo, suporte, fluido..."
+                    placeholder="Listar materiais..."
                     className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                   />
                 </div>
-
-                <div className="mt-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">
-                  <div className="flex items-start gap-2">
-                    <Package className="mt-0.5 h-4 w-4 shrink-0" />
-
-                    <span>
-                      Materiais são cobrados separadamente do serviço.
-                      O pagamento dos materiais pode ser marcado posteriormente.
-                    </span>
-                  </div>
-                </div>
               </section>
-
-              {/* STATUS / OBSERVAÇÕES */}
-              <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                <div className="grid gap-4 md:grid-cols-2">
-
-                  <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Status
-                    </label>
-
-                    <select
-                      value={
-                        form.status
-                      }
-                      onChange={(event) =>
-                        setForm((old) => ({
-                          ...old,
-                          status:
-                            event.target
-                              .value as ServiceOrderStatus,
-                        }))
-                      }
-                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
-                    >
-                      <option value="Aberta">
-                        Aberta
-                      </option>
-
-                      <option value="Agendada">
-                        Agendada
-                      </option>
-
-                      <option value="Em andamento">
-                        Em andamento
-                      </option>
-
-                      <option value="Concluída">
-                        Concluída
-                      </option>
-
-                      <option value="Cancelada">
-                        Cancelada
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm text-slate-400">
-                      Observações
-                    </label>
-
-                    <textarea
-                      value={
-                        form.notes
-                      }
-                      onChange={(event) =>
-                        setForm((old) => ({
-                          ...old,
-                          notes:
-                            event.target
-                              .value,
-                        }))
-                      }
-                      rows={3}
-                      placeholder="Observações internas da ordem..."
-                      className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
-                    />
-                  </div>
-                </div>
-              </section>
-
             </div>
 
-            {/* BOTÕES */}
-            <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-slate-800 bg-slate-900 p-5 sm:flex-row sm:justify-end">
-              <button
-                onClick={closeForm}
-                disabled={saving}
-                className="rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={saveOrder}
-                disabled={saving}
-                className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saving
-                  ? "Salvando..."
-                  : editingId
-                  ? "Salvar alterações"
-                  : "Criar Ordem de Serviço"}
+            <div className="sticky bottom-0 flex justify-end gap-3 border-t border-slate-800 bg-slate-900 p-5">
+              <button onClick={closeForm} disabled={saving} className="rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold hover:bg-slate-800">Cancelar</button>
+              <button onClick={saveOrder} disabled={saving} className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-400">
+                {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar Ordem de Serviço"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL DETALHES */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm">
           <div className="max-h-[95vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
-
             <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-xl font-bold">
-                    {selectedOrder.number}
-                  </h2>
-
-                  <span
-                    className={`rounded-full border px-2 py-1 text-[11px] font-semibold ${statusClass(
-                      selectedOrder.status
-                    )}`}
-                  >
-                    {selectedOrder.status}
-                  </span>
-                </div>
-
-                <p className="text-xs text-slate-500">
-                  Ordem de Serviço
-                </p>
-              </div>
-
-              <button
-                onClick={() =>
-                  setSelectedOrder(null)
-                }
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <h2 className="text-xl font-bold">{selectedOrder.number}</h2>
+              <button onClick={() => setSelectedOrder(null)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"><X className="h-5 w-5" /></button>
             </div>
 
             <div className="space-y-5 p-5">
-
               <div className="grid gap-4 md:grid-cols-2">
-
                 <div className="rounded-xl bg-slate-950 p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <User className="h-4 w-4 text-cyan-400" />
-                    <h3 className="font-semibold">
-                      Cliente
-                    </h3>
-                  </div>
-
-                  <p className="font-semibold">
-                    {selectedOrder.client}
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-400">
-                    {selectedOrder.city ||
-                      "Cidade não informada"}
-                  </p>
+                  <h3 className="font-semibold">Cliente</h3>
+                  <p className="font-semibold">{selectedOrder.client}</p>
                 </div>
-
                 <div className="rounded-xl bg-slate-950 p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-cyan-400" />
-                    <h3 className="font-semibold">
-                      Atendimento
-                    </h3>
-                  </div>
-
-                  <p className="text-sm">
-                    Data:{" "}
-                    <strong>
-                      {formatDate(
-                        selectedOrder.date
-                      )}
-                    </strong>
-                  </p>
-
-                  <p className="mt-1 text-sm">
-                    Técnico:{" "}
-                    <strong>
-                      {selectedOrder.technician ||
-                        "Não definido"}
-                    </strong>
-                  </p>
-                </div>
-              </div>
-
-              {/* EQUIPAMENTO */}
-              <div className="rounded-xl bg-slate-950 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Wrench className="h-4 w-4 text-cyan-400" />
-
-                  <h3 className="font-semibold">
-                    Equipamento
-                  </h3>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <p className="text-xs text-slate-500">
-                      Equipamento
-                    </p>
-
-                    <p className="mt-1 font-semibold">
-                      {selectedOrder.equipment ||
-                        "Não informado"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-slate-500">
-                      Marca
-                    </p>
-
-                    <p className="mt-1 font-semibold">
-                      {selectedOrder.equipmentBrand ||
-                        "Não informada"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-slate-500">
-                      Modelo
-                    </p>
-
-                    <p className="mt-1 font-semibold">
-                      {selectedOrder.equipmentModel ||
-                        "Não informado"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs text-slate-500">
-                      Capacidade
-                    </p>
-
-                    <p className="mt-1 font-semibold">
-                      {selectedOrder.equipmentCapacity ||
-                        "Não informada"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* SERVIÇO */}
-              <div className="rounded-xl bg-slate-950 p-4">
-                <h3 className="mb-3 font-semibold">
-                  Serviço
-                </h3>
-
-                <p className="text-sm text-cyan-400">
-                  {selectedOrder.serviceType}
-                </p>
-
-                <p className="mt-3 whitespace-pre-wrap text-sm text-slate-300">
-                  {selectedOrder.description ||
-                    "Nenhuma descrição informada."}
-                </p>
-              </div>
-
-              {/* PLANO */}
-              {selectedOrder.monthlyPlanId && (
-                <div
-                  className={`rounded-xl border p-4 ${
-                    selectedOrder.monthlyPlanCovered
-                      ? "border-emerald-500/30 bg-emerald-500/5"
-                      : "border-red-500/30 bg-red-500/5"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    {selectedOrder.monthlyPlanCovered ? (
-                      <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
-                    ) : (
-                      <AlertTriangle className="h-5 w-5 shrink-0 text-red-400" />
-                    )}
-
-                    <div>
-                      <h3 className="font-semibold">
-                        Plano Mensal
-                      </h3>
-
-                      <p className="mt-1 text-sm">
-                        Status:{" "}
-                        <strong>
-                          {selectedOrder.monthlyPlanStatus}
-                        </strong>
-                      </p>
-
-                      {selectedOrder.monthlyPlanIncludedService && (
-                        <p className="mt-1 text-sm text-slate-400">
-                          Serviço incluso:{" "}
-                          {selectedOrder.monthlyPlanIncludedService}
-                        </p>
-                      )}
-
-                      {selectedOrder.monthlyPlanWarning && (
-                        <p className="mt-2 font-semibold text-red-400">
-                          {selectedOrder.monthlyPlanWarning}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* VALORES */}
-              <div className="rounded-xl bg-slate-950 p-4">
-                <h3 className="mb-4 font-semibold">
-                  Valores
-                </h3>
-
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl bg-slate-900 p-4">
-                    <p className="text-xs text-slate-500">
-                      Serviço
-                    </p>
-
-                    <p className="mt-1 text-lg font-bold">
-                      {formatCurrency(
-                        selectedOrder.serviceValue
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-900 p-4">
-                    <p className="text-xs text-slate-500">
-                      Materiais
-                    </p>
-
-                    <p className="mt-1 text-lg font-bold">
-                      {formatCurrency(
-                        selectedOrder.materialsValue
-                      )}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-                    <p className="text-xs text-slate-500">
-                      Total
-                    </p>
-
-                    <p className="mt-1 text-lg font-bold text-cyan-400">
-                      {formatCurrency(
-                        selectedOrder.value
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {selectedOrder.materialsDescription && (
-                  <div className="mt-4 rounded-xl bg-slate-900 p-4">
-                    <p className="text-xs text-slate-500">
-                      Materiais
-                    </p>
-
-                    <p className="mt-1 text-sm">
-                      {selectedOrder.materialsDescription}
-                    </p>
-                  </div>
-                )}
-
-                <div className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-3">
-                    <Package className="h-5 w-5 text-cyan-400" />
-
-                    <div>
-                      <p className="font-semibold">
-                        Pagamento dos materiais
-                      </p>
-
-                      <p
-                        className={
-                          selectedOrder.materialsPaid
-                            ? "text-sm text-emerald-400"
-                            : "text-sm text-yellow-400"
-                        }
-                      >
-                        {selectedOrder.materialsPaid
-                          ? "Materiais pagos"
-                          : "Materiais pendentes"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      toggleMaterialsPayment(
-                        selectedOrder
-                      )
-                    }
-                    className={`rounded-xl px-4 py-2.5 text-sm font-semibold ${
-                      selectedOrder.materialsPaid
-                        ? "border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
-                        : "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                    }`}
-                  >
-                    {selectedOrder.materialsPaid
-                      ? "Marcar como pendente"
-                      : "Marcar materiais como pagos"}
-                  </button>
-                </div>
-              </div>
-
-              {/* OBSERVAÇÕES */}
-              <div className="rounded-xl bg-slate-950 p-4">
-                <h3 className="mb-3 font-semibold">
-                  Observações
-                </h3>
-
-                <p className="whitespace-pre-wrap text-sm text-slate-300">
-                  {selectedOrder.notes ||
-                    "Nenhuma observação."}
-                </p>
-              </div>
-
-              {/* ALTERAR STATUS */}
-              <div className="rounded-xl bg-slate-950 p-4">
-                <h3 className="mb-3 font-semibold">
-                  Alterar status
-                </h3>
-
-                <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      "Aberta",
-                      "Agendada",
-                      "Em andamento",
-                      "Concluída",
-                      "Cancelada",
-                    ] as ServiceOrderStatus[]
-                  ).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() =>
-                        changeStatus(
-                          selectedOrder,
-                          status
-                        )
-                      }
-                      className={`rounded-xl border px-3 py-2 text-sm ${
-                        selectedOrder.status ===
-                        status
-                          ? statusClass(
-                              status
-                            )
-                          : "border-slate-700 text-slate-400 hover:bg-slate-800"
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
+                  <h3 className="font-semibold">Atendimento</h3>
+                  <p className="text-sm">Data: <strong>{formatDate(selectedOrder.date)}</strong></p>
                 </div>
               </div>
             </div>
 
-            {/* AÇÕES */}
-            <div className="sticky bottom-0 flex flex-wrap justify-end gap-3 border-t border-slate-800 bg-slate-900 p-5">
-
-              <button
-                onClick={() =>
-                  printServiceOrder(
-                    selectedOrder
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm hover:bg-slate-800"
-              >
-                <Printer className="h-4 w-4" />
-                Imprimir
-              </button>
-
-              <button
-                onClick={() =>
-                  sendServiceOrderWhatsApp(
-                    selectedOrder
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl border border-emerald-500/20 px-4 py-2.5 text-sm text-emerald-400 hover:bg-emerald-500/10"
-              >
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp
-              </button>
-
-              <button
-                onClick={() => {
-                  setSelectedOrder(null);
-                  openEditOrder(
-                    selectedOrder
-                  );
-                }}
-                className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm hover:bg-slate-800"
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </button>
-
-              <button
-                onClick={() =>
-                  setSelectedOrder(null)
-                }
-                className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400"
-              >
-                Fechar
-              </button>
+            <div className="sticky bottom-0 flex justify-end gap-3 border-t border-slate-800 bg-slate-900 p-5">
+              <button onClick={() => printServiceOrder(selectedOrder)} className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm hover:bg-slate-800"><Printer className="h-4 w-4" />Imprimir</button>
+              <button onClick={() => sendServiceOrderWhatsApp(selectedOrder)} className="flex items-center gap-2 rounded-xl border border-emerald-500/20 px-4 py-2.5 text-sm text-emerald-400 hover:bg-emerald-500/10"><MessageCircle className="h-4 w-4" />WhatsApp</button>
+              <button onClick={() => setSelectedOrder(null)} className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Fechar</button>
             </div>
           </div>
         </div>
