@@ -93,6 +93,7 @@ type ServiceOrder = {
   technician: string;
   technicianId: string;
   serviceValue: number;
+  discountPercent: number;
   materialsValue: number;
   materialsDescription: string;
   materialsPaid: boolean;
@@ -126,6 +127,7 @@ type FormData = {
   technician: string;
 
   value: string;
+  discountPercent: string;
   materialsValue: string;
   materialsDescription: string;
   materialsPaid: boolean;
@@ -158,6 +160,7 @@ const emptyForm: FormData = {
   technician: "",
 
   value: "",
+  discountPercent: "",
   materialsValue: "",
   materialsDescription: "",
   materialsPaid: false,
@@ -181,13 +184,10 @@ function formatCurrency(value: number) {
 
 function formatDate(value: string) {
   if (!value) return "-";
-
   const date = new Date(`${value}T00:00:00`);
-
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-
   return date.toLocaleDateString("pt-BR");
 }
 
@@ -195,19 +195,14 @@ function parseMoney(value: string | number | null | undefined) {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
   }
-
   const text = String(value ?? "").trim();
-
   if (!text) return 0;
-
   const normalized = text
     .replace(/\s/g, "")
     .replace(/R\$/gi, "")
     .replace(/\./g, "")
     .replace(",", ".");
-
   const number = Number(normalized);
-
   return Number.isFinite(number) ? number : 0;
 }
 
@@ -236,35 +231,23 @@ function getEquipmentName(equipment: Equipment) {
     equipment.descricao ??
     equipment.equipamento ??
     "";
-
   if (String(name).trim()) {
     return String(name);
   }
-
   const brand = String(equipment.marca ?? "").trim();
   const model = String(equipment.modelo ?? "").trim();
-
   if (brand || model) {
     return [brand, model].filter(Boolean).join(" ");
   }
-
   return "Equipamento";
 }
 
 function getEquipmentBrand(equipment: Equipment) {
-  return String(
-    equipment.marca ??
-      equipment.brand ??
-      ""
-  ).trim();
+  return String(equipment.marca ?? equipment.brand ?? "").trim();
 }
 
 function getEquipmentModel(equipment: Equipment) {
-  return String(
-    equipment.modelo ??
-      equipment.model ??
-      ""
-  ).trim();
+  return String(equipment.modelo ?? equipment.model ?? "").trim();
 }
 
 function getEquipmentCapacity(equipment: Equipment) {
@@ -274,9 +257,7 @@ function getEquipmentCapacity(equipment: Equipment) {
     equipment.capacidade_btus ??
     equipment.btu ??
     "";
-
   if (!String(value).trim()) return "";
-
   return String(value);
 }
 
@@ -284,19 +265,15 @@ function statusClass(status: ServiceOrderStatus) {
   if (status === "Concluída") {
     return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
   }
-
   if (status === "Cancelada") {
     return "bg-red-500/10 text-red-400 border-red-500/20";
   }
-
   if (status === "Em andamento") {
     return "bg-blue-500/10 text-blue-400 border-blue-500/20";
   }
-
   if (status === "Agendada") {
     return "bg-purple-500/10 text-purple-400 border-purple-500/20";
   }
-
   return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
 }
 
@@ -327,7 +304,6 @@ function printServiceOrder(order: ServiceOrder) {
       const item1 = col1[idx] || "";
       const idx2 = halfLength + idx + 1;
       const item2 = col2[idx] || "";
-
       return `
         <tr>
           <td class="num">${item1 ? idx1 : ""}</td>
@@ -339,6 +315,10 @@ function printServiceOrder(order: ServiceOrder) {
     })
     .join("");
 
+  const discountHtml = order.discountPercent > 0
+    ? `<div style="margin-top: 4px; color: #166534; font-weight: bold;">Desconto Aplicado: ${order.discountPercent}%</div>`
+    : "";
+
   const html = `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -346,152 +326,32 @@ function printServiceOrder(order: ServiceOrder) {
 <meta charset="UTF-8">
 <title>OS ${escapeHtml(order.number)}</title>
 <style>
-  @page {
-    size: A4;
-    margin: 10mm 15mm;
-  }
-  * {
-    box-sizing: border-box;
-  }
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: #111;
-    background: #fff;
-    font-size: 13px;
-  }
-  .sheet {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #fff;
-    padding: 20px;
-  }
-
-  .logo-header {
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  .brand-title {
-    font-size: 26px;
-    font-weight: 800;
-    color: #0b4a78;
-    margin: 0;
-    letter-spacing: -0.5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .header-info {
-    font-size: 11px;
-    color: #333;
-    line-height: 1.35;
-    margin-top: 4px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
-  }
-  .os-title-box {
-    text-align: center;
-    margin: 12px 0 16px;
-  }
-  .os-title-box h1 {
-    font-size: 20px;
-    font-weight: 800;
-    margin: 0;
-    text-transform: uppercase;
-  }
-  .os-subtitle {
-    font-size: 13px;
-    color: #444;
-    font-style: italic;
-    margin-top: 2px;
-  }
-
-  .section-title {
-    font-size: 14px;
-    font-weight: 800;
-    margin: 14px 0 6px 0;
-    text-transform: uppercase;
-  }
-
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .info-card {
-    border: 1px solid #777;
-    border-radius: 8px;
-    padding: 6px 10px;
-    min-height: 44px;
-  }
-  .card-label {
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: #222;
-  }
-  .card-val {
-    font-size: 13px;
-    font-weight: 600;
-    margin-top: 2px;
-    color: #000;
-  }
-
-  table.tbl {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 2px;
-  }
-  table.tbl td, table.tbl th {
-    border: 1px solid #333;
-    padding: 5px 8px;
-    font-size: 12px;
-  }
-  table.tbl td.num {
-    width: 28px;
-    text-align: center;
-    font-weight: bold;
-    background: #f9f9f9;
-  }
-
-  .pendente-text {
-    color: #c5221f;
-    font-weight: 900;
-    font-size: 16px;
-    letter-spacing: 0.5px;
-  }
-
-  .signatures-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    margin-top: 35px;
-    text-align: center;
-  }
-  .signature-line {
-    border-top: 1.5px solid #000;
-    padding-top: 5px;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  .signature-hand {
-    font-family: 'Brush Script MT', cursive, sans-serif;
-    font-size: 26px;
-    height: 35px;
-    line-height: 35px;
-    color: #1a365d;
-  }
-
-  @media print {
-    body { padding: 0; }
-    .sheet { padding: 0; width: 100%; max-width: 100%; }
-  }
+  @page { size: A4; margin: 10mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #111; background: #fff; font-size: 13px; }
+  .sheet { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; }
+  .logo-header { text-align: center; margin-bottom: 8px; }
+  .brand-title { font-size: 26px; font-weight: 800; color: #0b4a78; margin: 0; letter-spacing: -0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .header-info { font-size: 11px; color: #333; line-height: 1.35; margin-top: 4px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+  .os-title-box { text-align: center; margin: 12px 0 16px; }
+  .os-title-box h1 { font-size: 20px; font-weight: 800; margin: 0; text-transform: uppercase; }
+  .os-subtitle { font-size: 13px; color: #444; font-style: italic; margin-top: 2px; }
+  .section-title { font-size: 14px; font-weight: 800; margin: 14px 0 6px 0; text-transform: uppercase; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .info-card { border: 1px solid #777; border-radius: 8px; padding: 6px 10px; min-height: 44px; }
+  .card-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #222; }
+  .card-val { font-size: 13px; font-weight: 600; margin-top: 2px; color: #000; }
+  table.tbl { width: 100%; border-collapse: collapse; margin-top: 2px; }
+  table.tbl td, table.tbl th { border: 1px solid #333; padding: 5px 8px; font-size: 12px; }
+  table.tbl td.num { width: 28px; text-align: center; font-weight: bold; background: #f9f9f9; }
+  .pendente-text { color: #c5221f; font-weight: 900; font-size: 16px; letter-spacing: 0.5px; }
+  .signatures-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 35px; text-align: center; }
+  .signature-line { border-top: 1.5px solid #000; padding-top: 5px; font-size: 12px; font-weight: bold; }
+  .signature-hand { font-family: 'Brush Script MT', cursive, sans-serif; font-size: 26px; height: 35px; line-height: 35px; color: #1a365d; }
+  @media print { body { padding: 0; } .sheet { padding: 0; width: 100%; max-width: 100%; } }
 </style>
 </head>
 <body>
-
 <div class="sheet">
   <div class="logo-header">
     <div class="brand-title">
@@ -546,6 +406,7 @@ function printServiceOrder(order: ServiceOrder) {
     <div class="card-label">Descrição detalhada dos serviços:</div>
     <div class="card-val" style="font-weight: normal; font-size: 12px; line-height: 1.4; margin-top: 4px;">
       ${escapeHtml(order.description || "Serviços executados conforme combinado.")}
+      ${discountHtml}
     </div>
   </div>
 
@@ -555,26 +416,11 @@ function printServiceOrder(order: ServiceOrder) {
       ${
         materialsRowsHtml ||
         `
-        <tr>
-          <td class="num">1</td><td>3 metros de cano 3/8</td>
-          <td class="num">6</td><td>2 fitas PVC</td>
-        </tr>
-        <tr>
-          <td class="num">2</td><td>3 metros de cano 1/4</td>
-          <td class="num">7</td><td>1 fita prateada</td>
-        </tr>
-        <tr>
-          <td class="num">3</td><td>Esponjoso para tubos</td>
-          <td class="num">8</td><td>4 metros de cabo PP 4 vias 1,5</td>
-        </tr>
-        <tr>
-          <td class="num">4</td><td>1 suporte para telhado</td>
-          <td class="num">9</td><td>8 parafusos e 8 buchas</td>
-        </tr>
-        <tr>
-          <td class="num">5</td><td>1 suporte de 45</td>
-          <td class="num">10</td><td>4 buchas e parafusos 10</td>
-        </tr>
+        <tr><td class="num">1</td><td>3 metros de cano 3/8</td><td class="num">6</td><td>2 fitas PVC</td></tr>
+        <tr><td class="num">2</td><td>3 metros de cano 1/4</td><td class="num">7</td><td>1 fita prateada</td></tr>
+        <tr><td class="num">3</td><td>Esponjoso para tubos</td><td class="num">8</td><td>4 metros de cabo PP 4 vias 1,5</td></tr>
+        <tr><td class="num">4</td><td>1 suporte para telhado</td><td class="num">9</td><td>8 parafusos e 8 buchas</td></tr>
+        <tr><td class="num">5</td><td>1 suporte de 45</td><td class="num">10</td><td>4 buchas e parafusos 10</td></tr>
         `
       }
     </tbody>
@@ -584,7 +430,7 @@ function printServiceOrder(order: ServiceOrder) {
   <div class="grid-2">
     <div class="info-card">
       <div class="card-label">Valor do Serviço:</div>
-      <div class="card-val">${formatCurrency(order.serviceValue)}</div>
+      <div class="card-val">${formatCurrency(order.serviceValue)} ${order.discountPercent > 0 ? `(${order.discountPercent}% desc.)` : ""}</div>
     </div>
     <div class="info-card">
       <div class="card-label">Valor dos Materiais:</div>
@@ -614,13 +460,7 @@ function printServiceOrder(order: ServiceOrder) {
     </div>
   </div>
 </div>
-
-<script>
-window.onload = function() {
-  window.print();
-};
-</script>
-
+<script>window.onload = function() { window.print(); };</script>
 </body>
 </html>
 `;
@@ -630,7 +470,6 @@ window.onload = function() {
     alert("Não foi possível abrir a janela de impressão.");
     return;
   }
-
   printWindow.document.write(html);
   printWindow.document.close();
 }
@@ -653,6 +492,7 @@ function sendServiceOrderWhatsApp(order: ServiceOrder) {
     ``,
     `*Serviço:* ${order.serviceType}`,
     `Descrição: ${order.description || "Não informada"}`,
+    order.discountPercent > 0 ? `Desconto Aplicado: ${order.discountPercent}%` : "",
     ``,
     order.monthlyPlanId
       ? `*Plano mensal:* ${order.monthlyPlanCovered ? "SERVIÇO COBERTO" : order.monthlyPlanStatus}`
@@ -660,7 +500,7 @@ function sendServiceOrderWhatsApp(order: ServiceOrder) {
     order.monthlyPlanWarning ? `Aviso: ${order.monthlyPlanWarning}` : "",
     ``,
     `*Valores*`,
-    `Serviço: ${formatCurrency(order.serviceValue)}`,
+    `Serviço: ${formatCurrency(order.serviceValue)} ${order.discountPercent > 0 ? `(com ${order.discountPercent}% de desconto)` : ""}`,
     `Materiais: ${formatCurrency(order.materialsValue)}`,
     `Materiais: ${order.materialsPaid ? "PAGO" : "PENDENTE"}`,
     `*Total: ${formatCurrency(order.value)}*`,
@@ -701,7 +541,12 @@ export default function OrdensServicoPage() {
     return equipments.filter((equipment) => getEquipmentClientId(equipment) === form.clientId);
   }, [equipments, form.clientId]);
 
-  const serviceValueNumber = parseMoney(form.value);
+  const serviceBaseValue = parseMoney(form.value);
+  const discountPctNumber = parseMoney(form.discountPercent);
+  const serviceValueNumber = discountPctNumber > 0 
+    ? serviceBaseValue * (1 - discountPctNumber / 100) 
+    : serviceBaseValue;
+
   const materialsValueNumber = parseMoney(form.materialsValue);
   const totalValue = serviceValueNumber + materialsValueNumber;
 
@@ -732,6 +577,7 @@ export default function OrdensServicoPage() {
       technician: String(item.tecnico ?? ""),
       technicianId: String(item.tecnico_id ?? ""),
       serviceValue: Number(item.valor_servicos ?? item.valor ?? 0),
+      discountPercent: Number(item.desconto_percentual ?? 0),
       materialsValue: Number(item.valor_materiais ?? 0),
       materialsDescription: String(item.materiais_descricao ?? ""),
       materialsPaid: Boolean(item.materiais_pago ?? false),
@@ -811,6 +657,7 @@ export default function OrdensServicoPage() {
       technicianId: order.technicianId,
       technician: order.technician,
       value: String(order.serviceValue),
+      discountPercent: order.discountPercent ? String(order.discountPercent) : "",
       materialsValue: String(order.materialsValue),
       materialsDescription: order.materialsDescription,
       materialsPaid: order.materialsPaid,
@@ -958,17 +805,14 @@ export default function OrdensServicoPage() {
 
     setSaving(true);
     try {
-      const serviceValue = parseMoney(form.value);
-      const materialsValue = parseMoney(form.materialsValue);
-
       const monthlyPlanData = await applyMonthlyPlanToServiceOrder({
         clientId: form.clientId,
         service: form.serviceType,
-        normalServiceValue: serviceValue,
+        normalServiceValue: serviceValueNumber,
       });
 
-      const finalServiceValue = monthlyPlanData.valor_servicos;
-      const finalTotal = finalServiceValue + materialsValue;
+      const finalServiceValue = monthlyPlanData.plano_mensal_coberto ? 0 : serviceValueNumber;
+      const finalTotal = finalServiceValue + materialsValueNumber;
 
       const commonData = {
         cliente_id: form.clientId,
@@ -985,7 +829,8 @@ export default function OrdensServicoPage() {
         tecnico: form.technician || null,
         tecnico_id: form.technicianId || null,
         valor_servicos: finalServiceValue,
-        valor_materiais: materialsValue,
+        desconto_percentual: discountPctNumber,
+        valor_materiais: materialsValueNumber,
         materiais_descricao: form.materialsDescription || null,
         valor: finalTotal,
         status: form.status,
@@ -1234,7 +1079,7 @@ export default function OrdensServicoPage() {
                         </div>
 
                         <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                          <span>Serviço: <strong>{formatCurrency(order.serviceValue)}</strong></span>
+                          <span>Serviço: <strong>{formatCurrency(order.serviceValue)}</strong> {order.discountPercent > 0 && <span className="text-emerald-400">({order.discountPercent}% desc.)</span>}</span>
                           <span>Materiais: <strong>{formatCurrency(order.materialsValue)}</strong></span>
                           <span>Total: <strong className="text-cyan-400">{formatCurrency(order.value)}</strong></span>
                           <span className={order.materialsPaid ? "text-emerald-400" : "text-yellow-400"}>
@@ -1367,14 +1212,23 @@ export default function OrdensServicoPage() {
               </section>
 
               <section className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                <div className="mb-4 flex items-center gap-2"><CreditCard className="h-5 w-5 text-cyan-400" /><h3 className="font-semibold">Valores</h3></div>
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="mb-4 flex items-center gap-2"><CreditCard className="h-5 w-5 text-cyan-400" /><h3 className="font-semibold">Valores e Desconto</h3></div>
+                <div className="grid gap-4 md:grid-cols-4">
                   <div>
-                    <label className="mb-2 block text-sm text-slate-400">Valor do serviço</label>
+                    <label className="mb-2 block text-sm text-slate-400">Valor Bruto do Serviço</label>
                     <input
                       value={form.value}
                       onChange={(event) => setForm((old) => ({ ...old, value: event.target.value }))}
                       placeholder="0,00"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm text-slate-400">Desconto (%)</label>
+                    <input
+                      value={form.discountPercent}
+                      onChange={(event) => setForm((old) => ({ ...old, discountPercent: event.target.value }))}
+                      placeholder="Ex: 15"
                       className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                     />
                   </div>
@@ -1388,7 +1242,7 @@ export default function OrdensServicoPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm text-slate-400">Total</label>
+                    <label className="mb-2 block text-sm text-slate-400">Total Geral</label>
                     <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 px-4 py-3 text-lg font-bold text-cyan-400">
                       {formatCurrency(totalValue)}
                     </div>
@@ -1435,6 +1289,13 @@ export default function OrdensServicoPage() {
                   <h3 className="font-semibold">Atendimento</h3>
                   <p className="text-sm">Data: <strong>{formatDate(selectedOrder.date)}</strong></p>
                 </div>
+              </div>
+
+              <div className="rounded-xl bg-slate-950 p-4">
+                <h3 className="font-semibold mb-2">Valores</h3>
+                <p className="text-sm">Serviço: <strong>{formatCurrency(selectedOrder.serviceValue)}</strong> {selectedOrder.discountPercent > 0 && <span className="text-emerald-400">({selectedOrder.discountPercent}% de desconto)</span>}</p>
+                <p className="text-sm">Materiais: <strong>{formatCurrency(selectedOrder.materialsValue)}</strong></p>
+                <p className="text-sm mt-1">Total Geral: <strong className="text-cyan-400">{formatCurrency(selectedOrder.value)}</strong></p>
               </div>
             </div>
 
