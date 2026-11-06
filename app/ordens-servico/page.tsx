@@ -324,7 +324,7 @@ function printServiceOrder(order: ServiceOrder) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>OS ${escapeHtml(order.number)}</title>
+<title>Orçamento / OS ${escapeHtml(order.number)}</title>
 <style>
   @page { size: A4; margin: 10mm 15mm; }
   * { box-sizing: border-box; }
@@ -366,7 +366,7 @@ function printServiceOrder(order: ServiceOrder) {
   </div>
 
   <div class="os-title-box">
-    <h1>ORDEM DE SERVIÇO Nº ${escapeHtml(order.number)}</h1>
+    <h1>ORÇAMENTO / ORDEM DE SERVIÇO Nº ${escapeHtml(order.number)}</h1>
     <div class="os-subtitle">Qualidade e confiança em todos os detalhes.</div>
   </div>
 
@@ -403,7 +403,7 @@ function printServiceOrder(order: ServiceOrder) {
   </div>
 
   <div class="info-card" style="min-height: 60px;">
-    <div class="card-label">Descrição detalhada dos serviços:</div>
+    <div class="card-label">Descrição detalhada dos serviços / orçamento:</div>
     <div class="card-val" style="font-weight: normal; font-size: 12px; line-height: 1.4; margin-top: 4px;">
       ${escapeHtml(order.description || "Serviços executados conforme combinado.")}
       ${discountHtml}
@@ -477,7 +477,7 @@ function printServiceOrder(order: ServiceOrder) {
 function sendServiceOrderWhatsApp(order: ServiceOrder) {
   const message = [
     `*NANDO'S AR-CONDICIONADO*`,
-    `*ORDEM DE SERVIÇO ${order.number}*`,
+    `*ORÇAMENTO / OS ${order.number}*`,
     ``,
     `Cliente: ${order.client}`,
     `Cidade: ${order.city}`,
@@ -799,7 +799,7 @@ export default function OrdensServicoPage() {
       return;
     }
     if (!form.date) {
-      alert("Informe a data da ordem de serviço.");
+      alert("Informe a data.");
       return;
     }
 
@@ -860,7 +860,7 @@ export default function OrdensServicoPage() {
         if (error) throw error;
         savedOrder = data;
       } else {
-        const number = `OS-${String(Date.now()).slice(-6)}`;
+        const number = `ORC-${String(Date.now()).slice(-6)}`;
         const { data, error } = await supabase
           .from("ordens_servico")
           .insert({
@@ -893,20 +893,20 @@ export default function OrdensServicoPage() {
         }
       }
 
-      alert(editingId ? "Ordem de serviço atualizada com sucesso." : "Ordem de serviço criada com sucesso.");
+      alert(editingId ? "Orçamento / OS atualizado com sucesso." : "Orçamento / OS criado com sucesso.");
       closeForm();
       await loadData();
     } catch (error: any) {
-      alert(error?.message || "Não foi possível salvar a ordem de serviço.");
+      alert(error?.message || "Não foi possível salvar.");
     }
     setSaving(false);
   }
 
   async function deleteOrder(order: ServiceOrder) {
-    if (!window.confirm(`Deseja excluir a ordem de serviço ${order.number}?`)) return;
+    if (!window.confirm(`Deseja excluir o registro ${order.number}?`)) return;
     const { error } = await supabase.from("ordens_servico").delete().eq("id", order.id);
     if (error) {
-      alert("Não foi possível excluir a ordem de serviço.");
+      alert("Não foi possível excluir.");
       return;
     }
     if (selectedOrder?.id === order.id) setSelectedOrder(null);
@@ -968,8 +968,8 @@ export default function OrdensServicoPage() {
                 <ClipboardList className="h-7 w-7 text-cyan-400" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold sm:text-3xl">Ordens de Serviço</h1>
-                <p className="text-sm text-slate-400">Controle completo das ordens de serviço</p>
+                <h1 className="text-2xl font-bold sm:text-3xl">Orçamento / Ordem de Serviço</h1>
+                <p className="text-sm text-slate-400">Controle unificado de orçamentos e ordens de serviço</p>
               </div>
             </div>
           </div>
@@ -978,7 +978,7 @@ export default function OrdensServicoPage() {
             className="flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400"
           >
             <Plus className="h-5 w-5" />
-            Nova Ordem de Serviço
+            Novo Orçamento / OS
           </button>
         </div>
 
@@ -1012,7 +1012,7 @@ export default function OrdensServicoPage() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Pesquisar OS, cliente, cidade ou equipamento..."
+                placeholder="Pesquisar por número, cliente, cidade ou equipamento..."
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-10 pr-4 text-sm outline-none focus:border-cyan-500"
               />
             </div>
@@ -1033,17 +1033,17 @@ export default function OrdensServicoPage() {
 
         <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
           <div className="border-b border-slate-800 px-5 py-4">
-            <h2 className="font-semibold">Ordens de Serviço</h2>
-            <p className="text-xs text-slate-500">{filteredOrders.length} ordem(ns) encontrada(s)</p>
+            <h2 className="font-semibold">Lista de Orçamentos e Ordens de Serviço</h2>
+            <p className="text-xs text-slate-500">{filteredOrders.length} registro(s) encontrado(s)</p>
           </div>
 
           {loading ? (
-            <div className="p-10 text-center text-slate-400">Carregando ordens de serviço...</div>
+            <div className="p-10 text-center text-slate-400">Carregando registros...</div>
           ) : filteredOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
               <ClipboardList className="mb-4 h-12 w-12 text-slate-700" />
-              <h3 className="font-semibold">Nenhuma ordem encontrada</h3>
-              <p className="mt-1 text-sm text-slate-500">Crie uma nova ordem de serviço para começar.</p>
+              <h3 className="font-semibold">Nenhum registro encontrado</h3>
+              <p className="mt-1 text-sm text-slate-500">Crie um novo orçamento ou ordem de serviço para começar.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-800">
@@ -1109,7 +1109,7 @@ export default function OrdensServicoPage() {
           <div className="max-h-[95vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
             <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4">
               <div>
-                <h2 className="text-lg font-bold">{editingId ? "Editar Ordem de Serviço" : "Nova Ordem de Serviço"}</h2>
+                <h2 className="text-lg font-bold">{editingId ? "Editar Orçamento / OS" : "Novo Orçamento / OS"}</h2>
                 <p className="text-xs text-slate-500">Cliente, equipamento, plano, serviço e materiais</p>
               </div>
               <button onClick={closeForm} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800"><X className="h-5 w-5" /></button>
@@ -1185,12 +1185,12 @@ export default function OrdensServicoPage() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="mb-2 block text-sm text-slate-400">Descrição do serviço</label>
+                    <label className="mb-2 block text-sm text-slate-400">Descrição / Detalhes</label>
                     <textarea
                       value={form.description}
                       onChange={(event) => setForm((old) => ({ ...old, description: event.target.value }))}
                       rows={4}
-                      placeholder="Descreva o serviço..."
+                      placeholder="Descreva o serviço ou orçamento..."
                       className="w-full resize-none rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-cyan-500"
                     />
                   </div>
@@ -1264,7 +1264,7 @@ export default function OrdensServicoPage() {
             <div className="sticky bottom-0 flex justify-end gap-3 border-t border-slate-800 bg-slate-900 p-5">
               <button onClick={closeForm} disabled={saving} className="rounded-xl border border-slate-700 px-5 py-3 text-sm font-semibold hover:bg-slate-800">Cancelar</button>
               <button onClick={saveOrder} disabled={saving} className="rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-400">
-                {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar Ordem de Serviço"}
+                {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar Orçamento / OS"}
               </button>
             </div>
           </div>
