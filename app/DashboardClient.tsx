@@ -70,13 +70,7 @@ const menuItems: MenuItem[] = [
     modulo: "equipamentos",
   },
   {
-    name: "Orçamentos",
-    icon: FileText,
-    path: "/orcamentos",
-    modulo: "orcamentos",
-  },
-  {
-    name: "Ordens de serviço",
+    name: "Orçamento / OS",
     icon: ClipboardList,
     path: "/ordens-servico",
     modulo: "ordens-servico",
@@ -294,8 +288,6 @@ export default function Dashboard() {
           }
         }
 
-        // O faturamento do Dashboard usa o Caixa atual do ClimaPro.
-        // Entradas do mês são consideradas faturamento.
         const financeiroResult = await supabase
           .from("caixa_movimentacoes")
           .select("valor, tipo, data_movimento");
@@ -583,7 +575,7 @@ export default function Dashboard() {
               Acesso rápido
             </h2>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {hasVisualPermission("clientes") && (
                 <QuickButton
                   text="Novo cliente"
@@ -594,21 +586,10 @@ export default function Dashboard() {
               )}
 
               {hasVisualPermission(
-                "orcamentos"
-              ) && (
-                <QuickButton
-                  text="Novo orçamento"
-                  onClick={() =>
-                    navigate("/orcamentos?novo=1")
-                  }
-                />
-              )}
-
-              {hasVisualPermission(
                 "ordens-servico"
               ) && (
                 <QuickButton
-                  text="Nova ordem de serviço"
+                  text="Novo Orçamento / OS"
                   onClick={() =>
                     navigate("/ordens-servico?novo=1")
                   }
