@@ -1,101 +1,33 @@
-table_name,constraint_name,constraint_type,column_name,tabela_referenciada,coluna_referenciada
-agenda,2200_17660_10_not_null,CHECK,null,null,null
-agenda,2200_17660_11_not_null,CHECK,null,null,null
-agenda,2200_17660_1_not_null,CHECK,null,null,null
-agenda,2200_17660_3_not_null,CHECK,null,null,null
-agenda,2200_17660_4_not_null,CHECK,null,null,null
-agenda,2200_17660_5_not_null,CHECK,null,null,null
-agenda,2200_17660_6_not_null,CHECK,null,null,null
-agenda,2200_17660_7_not_null,CHECK,null,null,null
-agenda,2200_17660_8_not_null,CHECK,null,null,null
-agenda,2200_17660_9_not_null,CHECK,null,null,null
-agenda,agenda_cliente_id_fkey,FOREIGN KEY,cliente_id,clientes,id
-agenda,agenda_pkey,PRIMARY KEY,id,agenda,id
-agenda,agenda_status_check,CHECK,null,agenda,status
-ajudantes,2200_18576_1_not_null,CHECK,null,null,null
-ajudantes,2200_18576_2_not_null,CHECK,null,null,null
-ajudantes,2200_18576_4_not_null,CHECK,null,null,null
-ajudantes,ajudantes_pkey,PRIMARY KEY,id,ajudantes,id
-caixa_movimentacoes,2200_18160_13_not_null,CHECK,null,null,null
-caixa_movimentacoes,2200_18160_14_not_null,CHECK,null,null,null
-caixa_movimentacoes,2200_18160_1_not_null,CHECK,null,null,null
-caixa_movimentacoes,2200_18160_2_not_null,CHECK,null,null,null
-caixa_movimentacoes,2200_18160_3_not_null,CHECK,null,null,null
-caixa_movimentacoes,2200_18160_4_not_null,CHECK,null,null,null
-caixa_movimentacoes,2200_18160_5_not_null,CHECK,null,null,null
-caixa_movimentacoes,caixa_movimentacoes_funcionario_id_fkey,FOREIGN KEY,funcionario_id,funcionarios,id
-caixa_movimentacoes,caixa_movimentacoes_pkey,PRIMARY KEY,id,caixa_movimentacoes,id
-caixa_movimentacoes,caixa_movimentacoes_tipo_check,CHECK,null,caixa_movimentacoes,tipo
-clientes,2200_17542_14_not_null,CHECK,null,null,null
-clientes,2200_17542_16_not_null,CHECK,null,null,null
-clientes,2200_17542_17_not_null,CHECK,null,null,null
-clientes,2200_17542_1_not_null,CHECK,null,null,null
-clientes,2200_17542_2_not_null,CHECK,null,null,null
-clientes,2200_17542_3_not_null,CHECK,null,null,null
-clientes,2200_17542_5_not_null,CHECK,null,null,null
-clientes,2200_17542_8_not_null,CHECK,null,null,null
-clientes,clientes_pkey,PRIMARY KEY,id,clientes,id
-clientes,clientes_status_check,CHECK,null,clientes,status
-clientes,clientes_tipo_check,CHECK,null,clientes,tipo
-configuracoes_empresa,2200_17812_10_not_null,CHECK,null,null,null
-configuracoes_empresa,2200_17812_1_not_null,CHECK,null,null,null
-configuracoes_empresa,2200_17812_2_not_null,CHECK,null,null,null
-configuracoes_empresa,2200_17812_8_not_null,CHECK,null,null,null
-configuracoes_empresa,2200_17812_9_not_null,CHECK,null,null,null
-configuracoes_empresa,configuracoes_empresa_pkey,PRIMARY KEY,id,configuracoes_empresa,id
-contas_financeiras,2200_18271_11_not_null,CHECK,null,null,null
-contas_financeiras,2200_18271_13_not_null,CHECK,null,null,null
-contas_financeiras,2200_18271_14_not_null,CHECK,null,null,null
-contas_financeiras,2200_18271_1_not_null,CHECK,null,null,null
-contas_financeiras,2200_18271_2_not_null,CHECK,null,null,null
-contas_financeiras,2200_18271_3_not_null,CHECK,null,null,null
-contas_financeiras,2200_18271_6_not_null,CHECK,null,null,null
-contas_financeiras,contas_financeiras_pkey,PRIMARY KEY,id,contas_financeiras,id
-contas_financeiras,contas_financeiras_status_check,CHECK,null,contas_financeiras,status
-contas_financeiras,contas_financeiras_tipo_check,CHECK,null,contas_financeiras,tipo
-contas_pagar,2200_18192_11_not_null,CHECK,null,null,null
-contas_pagar,2200_18192_12_not_null,CHECK,null,null,null
-contas_pagar,2200_18192_1_not_null,CHECK,null,null,null
-contas_pagar,2200_18192_2_not_null,CHECK,null,null,null
-contas_pagar,2200_18192_5_not_null,CHECK,null,null,null
-contas_pagar,2200_18192_9_not_null,CHECK,null,null,null
-contas_pagar,contas_pagar_pkey,PRIMARY KEY,id,contas_pagar,id
-contas_pagar,contas_pagar_status_check,CHECK,null,contas_pagar,status
-contas_receber,2200_18211_10_not_null,CHECK,null,null,null
-contas_receber,2200_18211_12_not_null,CHECK,null,null,null
-contas_receber,2200_18211_13_not_null,CHECK,null,null,null
-contas_receber,2200_18211_1_not_null,CHECK,null,null,null
-contas_receber,2200_18211_3_not_null,CHECK,null,null,null
-contas_receber,2200_18211_4_not_null,CHECK,null,null,null
-contas_receber,2200_18211_6_not_null,CHECK,null,null,null
-contas_receber,contas_receber_pkey,PRIMARY KEY,id,contas_receber,id
-contas_receber,contas_receber_status_check,CHECK,null,contas_receber,status
-contrato_equipamentos,2200_18627_10_not_null,CHECK,null,null,null
-contrato_equipamentos,2200_18627_11_not_null,CHECK,null,null,null
-contrato_equipamentos,2200_18627_1_not_null,CHECK,null,null,null
-contrato_equipamentos,2200_18627_2_not_null,CHECK,null,null,null
-contrato_equipamentos,contrato_equipamentos_contrato_id_fkey,FOREIGN KEY,contrato_id,contratos,id
-contrato_equipamentos,contrato_equipamentos_equipamento_id_fkey,FOREIGN KEY,equipamento_id,equipamentos,id
-contrato_equipamentos,contrato_equipamentos_pkey,PRIMARY KEY,id,contrato_equipamentos,id
-contratos,2200_17682_11_not_null,CHECK,null,null,null
-contratos,2200_17682_12_not_null,CHECK,null,null,null
-contratos,2200_17682_13_not_null,CHECK,null,null,null
-contratos,2200_17682_1_not_null,CHECK,null,null,null
-contratos,2200_17682_2_not_null,CHECK,null,null,null
-contratos,2200_17682_4_not_null,CHECK,null,null,null
-contratos,2200_17682_5_not_null,CHECK,null,null,null
-contratos,2200_17682_6_not_null,CHECK,null,null,null
-contratos,2200_17682_7_not_null,CHECK,null,null,null
-contratos,2200_17682_8_not_null,CHECK,null,null,null
-contratos,2200_17682_9_not_null,CHECK,null,null,null
-contratos,contratos_cliente_id_fkey,FOREIGN KEY,cliente_id,clientes,id
-contratos,contratos_numero_key,UNIQUE,numero,contratos,numero
-contratos,contratos_pkey,PRIMARY KEY,id,contratos,id
-contratos,contratos_plano_check,CHECK,null,contratos,plano
-contratos,contratos_quantidade_check,CHECK,null,contratos,quantidade_equipamentos
-contratos,contratos_status_check,CHECK,null,contratos,status
-contratos_planos_mensais,2200_18008_12_not_null,CHECK,null,null,null
-contratos_planos_mensais,2200_18008_13_not_null,CHECK,null,null,null
-contratos_planos_mensais,2200_18008_1_not_null,CHECK,null,null,null
-contratos_planos_mensais,2200_18008_2_not_null,CHECK,null,null,null
-contratos_planos_mensais,2200_18008_3_not_null,CHECK,null,null,null
+tabela,coluna,tabela_referenciada,coluna_referenciada,ao_atualizar,ao_excluir
+agenda,cliente_id,clientes,id,NO ACTION,SET NULL
+caixa_movimentacoes,funcionario_id,funcionarios,id,NO ACTION,SET NULL
+contrato_equipamentos,contrato_id,contratos,id,NO ACTION,CASCADE
+contrato_equipamentos,equipamento_id,equipamentos,id,NO ACTION,SET NULL
+contratos,cliente_id,clientes,id,NO ACTION,SET NULL
+contratos_planos_mensais,plano_id,planos_mensais,id,NO ACTION,CASCADE
+equipamentos,cliente_id,clientes,id,NO ACTION,CASCADE
+funcionario_valor_hora,funcionario_id,funcionarios,id,NO ACTION,CASCADE
+historico_manutencao,cliente_id,clientes,id,NO ACTION,SET NULL
+historico_manutencao,equipamento_id,equipamentos,id,NO ACTION,SET NULL
+horas_funcionarios,agenda_id,agenda,id,NO ACTION,SET NULL
+horas_funcionarios,funcionario_id,funcionarios,id,NO ACTION,CASCADE
+horas_funcionarios,recibo_id,recibos_funcionarios,id,NO ACTION,SET NULL
+lancamentos_financeiros,cliente_id,clientes,id,NO ACTION,SET NULL
+manutencoes_equipamentos,equipamento_id,equipamentos,id,NO ACTION,CASCADE
+movimentacoes_caixa,funcionario_id,funcionarios,id,NO ACTION,SET NULL
+movimentacoes_estoque,produto_id,estoque_produtos,id,NO ACTION,CASCADE
+orcamentos,cliente_id,clientes,id,NO ACTION,SET NULL
+ordem_servico_itens,ordem_servico_id,ordens_servico,id,NO ACTION,CASCADE
+ordens_servico,cliente_id,clientes,id,NO ACTION,SET NULL
+ordens_servico,financeiro_movimentacao_id,caixa_movimentacoes,id,NO ACTION,SET NULL
+ordens_servico,plano_mensal_id,planos_mensais,id,NO ACTION,SET NULL
+pagamentos_funcionarios,caixa_movimentacao_id,caixa_movimentacoes,id,NO ACTION,SET NULL
+pagamentos_funcionarios,funcionario_id,funcionarios,id,NO ACTION,CASCADE
+parcelas_planos,plano_id,planos_mensais,id,NO ACTION,CASCADE
+permissoes_funcionarios,funcionario_id,funcionarios,id,NO ACTION,CASCADE
+planos_mensais_parcelas,plano_id,planos_mensais,id,NO ACTION,CASCADE
+pro_labore,caixa_movimentacao_id,caixa_movimentacoes,id,NO ACTION,SET NULL
+recibos_funcionarios,funcionario_id,funcionarios,id,NO ACTION,CASCADE
+uso_planos_mensais,cliente_id,clientes,id,NO ACTION,SET NULL
+uso_planos_mensais,ordem_servico_id,ordens_servico,id,NO ACTION,SET NULL
+uso_planos_mensais,plano_id,planos_mensais,id,NO ACTION,CASCADE
